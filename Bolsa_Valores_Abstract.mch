@@ -1,11 +1,7 @@
 MACHINE Bolsa_Valores_Abstract
 
-SETS
-  CONJUNTO_CLIENTES;
-  CONJUNTO_ATIVOS;
-  CONJUNTO_ORDENS;
-  TIPO_LADO = {lado_compra, lado_venda};
-  STATUS_ORDEM = {status_aberta, status_cancelada, status_executada}
+SEES
+  Bolsa_Valores_Ctx
 
 VARIABLES
   conjuntoClientes,
@@ -27,14 +23,14 @@ INVARIANT
   conjuntoOrdens <: CONJUNTO_ORDENS &
   conjuntoOrdensAbertas <: conjuntoOrdens &
 
-  saldoClientes : conjuntoClientes --> NATURAL &
-  custodiaClientes : (conjuntoClientes * conjuntoAtivos) +-> NATURAL &
+  saldoClientes : conjuntoClientes --> NAT &
+  custodiaClientes : (conjuntoClientes * conjuntoAtivos) +-> NAT &
 
   donoOrdem : conjuntoOrdens --> conjuntoClientes &
   ativoOrdem : conjuntoOrdens --> conjuntoAtivos &
   tipoLadoOrdem : conjuntoOrdens --> TIPO_LADO &
-  quantidadeOrdem : conjuntoOrdens --> NATURAL1 &
-  precoOrdem : conjuntoOrdens --> NATURAL1 &
+  quantidadeOrdem : conjuntoOrdens --> NAT1 &
+  precoOrdem : conjuntoOrdens --> NAT1 &
   statusOrdem : conjuntoOrdens --> STATUS_ORDEM &
   conjuntoOrdensAbertas = (statusOrdem~)[{status_aberta}]
 
@@ -74,7 +70,7 @@ OPERATIONS
   depositarSaldo(cliente, valorDeposito) =
     PRE
       cliente : conjuntoClientes &
-      valorDeposito : NATURAL1
+      valorDeposito : NAT1
     THEN
       saldoClientes := saldoClientes <+ 
         {cliente |-> saldoClientes(cliente) + valorDeposito}
@@ -84,7 +80,7 @@ OPERATIONS
     PRE
       cliente : conjuntoClientes &
       ativo : conjuntoAtivos &
-      quantidade : NATURAL
+      quantidade : NAT
     THEN
       custodiaClientes := custodiaClientes <+ 
         {(cliente |-> ativo) |-> quantidade}
@@ -96,8 +92,8 @@ OPERATIONS
       ordemId /: conjuntoOrdens &
       cliente : conjuntoClientes &
       ativo : conjuntoAtivos &
-      quantidade : NATURAL1 &
-      precoUnitario : NATURAL1 &
+      quantidade : NAT1 &
+      precoUnitario : NAT1 &
       saldoClientes(cliente) >= quantidade * precoUnitario
     THEN
       conjuntoOrdens := conjuntoOrdens \/ {ordemId} ||
@@ -116,8 +112,8 @@ OPERATIONS
       ordemId /: conjuntoOrdens &
       cliente : conjuntoClientes &
       ativo : conjuntoAtivos &
-      quantidade : NATURAL1 &
-      precoUnitario : NATURAL1 &
+      quantidade : NAT1 &
+      precoUnitario : NAT1 &
       (cliente |-> ativo) : dom(custodiaClientes) &
       custodiaClientes(cliente |-> ativo) >= quantidade
     THEN
