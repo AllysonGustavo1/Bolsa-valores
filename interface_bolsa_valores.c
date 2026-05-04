@@ -1,585 +1,532 @@
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <limits.h>
 
-#include "Bolsa_Valores_Imp.h"
-
-#ifndef BOLSA_INIT
-#define BOLSA_INIT() Bolsa_Valores_Imp__INITIALISATION()
-#endif
-
-#ifndef OP_CADASTRAR_CLIENTE
-#define OP_CADASTRAR_CLIENTE(res, cliente) \
-    Bolsa_Valores_Imp__cadastrarCliente(&(res), (cliente))
-#endif
-
-#ifndef OP_CADASTRAR_ATIVO
-#define OP_CADASTRAR_ATIVO(res, ativo) \
-    Bolsa_Valores_Imp__cadastrarAtivo(&(res), (ativo))
-#endif
-
-#ifndef OP_DEPOSITAR_SALDO
-#define OP_DEPOSITAR_SALDO(res, cliente, valor) \
-    Bolsa_Valores_Imp__depositarSaldo(&(res), (cliente), (valor))
-#endif
-
-#ifndef OP_RETIRAR_SALDO
-#define OP_RETIRAR_SALDO(res, cliente, valor) \
-    Bolsa_Valores_Imp__retirarSaldo(&(res), (cliente), (valor))
-#endif
-
-#ifndef OP_CREDITAR_CUSTODIA
-#define OP_CREDITAR_CUSTODIA(res, cliente, ativo, quantidade) \
-    Bolsa_Valores_Imp__creditarCustodia(&(res), (cliente), (ativo), (quantidade))
-#endif
-
-#ifndef OP_ABRIR_ORDEM_COMPRA
-#define OP_ABRIR_ORDEM_COMPRA(res, ordem, cliente, ativo, quantidade, preco) \
-    Bolsa_Valores_Imp__abrirOrdemCompra(&(res), (ordem), (cliente), (ativo), (quantidade), (preco))
-#endif
-
-#ifndef OP_ABRIR_ORDEM_VENDA
-#define OP_ABRIR_ORDEM_VENDA(res, ordem, cliente, ativo, quantidade, preco) \
-    Bolsa_Valores_Imp__abrirOrdemVenda(&(res), (ordem), (cliente), (ativo), (quantidade), (preco))
-#endif
-
-#ifndef OP_EXECUTAR_CASAMENTO
-#define OP_EXECUTAR_CASAMENTO(res, compra, venda, quantidade, preco) \
-    Bolsa_Valores_Imp__executarCasamento(&(res), (compra), (venda), (quantidade), (preco))
-#endif
-
-#ifndef OP_CANCELAR_ORDEM
-#define OP_CANCELAR_ORDEM(res, ordem) \
-    Bolsa_Valores_Imp__cancelarOrdem(&(res), (ordem))
-#endif
-
-#ifndef OP_CONSULTAR_SALDO
-#define OP_CONSULTAR_SALDO(disponivel, bloqueado, cliente) \
-    Bolsa_Valores_Imp__consultarSaldo(&(disponivel), &(bloqueado), (cliente))
-#endif
-
-#ifndef OP_CONSULTAR_CUSTODIA
-#define OP_CONSULTAR_CUSTODIA(disponivel, bloqueado, cliente, ativo) \
-    Bolsa_Valores_Imp__consultarCustodia(&(disponivel), &(bloqueado), (cliente), (ativo))
-#endif
-
-#ifndef OP_CONSULTAR_STATUS_ORDEM
-#define OP_CONSULTAR_STATUS_ORDEM(status, ordem) \
-    Bolsa_Valores_Imp__consultarStatusOrdem(&(status), (ordem))
-#endif
-
-enum {
-    UI_MIN_CLIENTE = 1,
-    UI_MAX_CLIENTE = 20,
-    UI_MIN_ATIVO = 1,
-    UI_MAX_ATIVO = 10,
-    UI_MIN_ORDEM = 1,
-    UI_MAX_ORDEM = 50,
-    UI_MIN_VALOR = 1,
-    UI_MAX_DINHEIRO = 1000000,
-    UI_MAX_QUANTIDADE = 1000,
-    UI_MAX_PRECO = 1000,
-    B_ERRO = 0,
-    B_OK = 1
-};
-
-static void limpar_linha(void) {
-    int ch;
-
-    do {
-        ch = getchar();
-    } while (ch != '\n' && ch != EOF);
-}
-
-static int ler_inteiro(const char *rotulo, int minimo, int maximo, int *saida) {
-    char buffer[128];
-    long valor;
-    char *fim = NULL;
-
-    if (saida == NULL) {
-        return 0;
-    }
-
-    for (;;) {
-        printf("%s [%d..%d]: ", rotulo, minimo, maximo);
-
-        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-            return 0;
-        }
-
-        errno = 0;
-        valor = strtol(buffer, &fim, 10);
-
-        if (errno == ERANGE || valor < INT_MIN || valor > INT_MAX) {
-            printf("Entrada fora do intervalo de inteiro.\n");
-            continue;
-        }
-
-        while (*fim == ' ' || *fim == '\t') {
-            fim++;
-        }
-
-        if (*fim != '\n' && *fim != '\0') {
-            printf("Digite apenas numeros inteiros.\n");
-            continue;
-        }
-
-        if (valor < minimo || valor > maximo) {
-            printf("Valor invalido. Use um numero entre %d e %d.\n", minimo, maximo);
-            continue;
-        }
-
-        *saida = (int)valor;
-        return 1;
-    }
-}
-
-static void mostrar_resultado(int resultado) {
-    if (resultado == B_OK) {
-        printf("Operacao realizada com sucesso.\n");
-    } else if (resultado == B_ERRO) {
-        printf("Operacao rejeitada pela maquina B.\n");
-    } else {
-        printf("Resultado inesperado retornado pela maquina: %d\n", resultado);
-    }
-}
-
-static const char *descricao_status(int codigo) {
-    switch (codigo) {
-        case 0: return "livre";
-        case 1: return "aberta";
-        case 2: return "cancelada";
-        case 3: return "executada";
-        default: return "desconhecido";
-    }
-}
-
-static void menu(void) {
-    puts("");
-    puts("==== Sistema de Bolsa - Interface C ====");
-    puts("1  - Cadastrar cliente");
-    puts("2  - Cadastrar ativo");
-    puts("3  - Depositar saldo");
-    puts("4  - Retirar saldo");
-    puts("5  - Creditar custodia");
-    puts("6  - Abrir ordem de compra");
-    puts("7  - Abrir ordem de venda");
-    puts("8  - Executar casamento");
-    puts("9  - Cancelar ordem");
-    puts("10 - Consultar saldo");
-    puts("11 - Consultar custodia");
-    puts("12 - Consultar status da ordem");
-    puts("13 - Mostrar roteiro de demonstracao");
-    puts("0  - Sair");
-}
-
-static int ler_cliente(void) {
-    int valor = 0;
-    (void)ler_inteiro("Cliente", UI_MIN_CLIENTE, UI_MAX_CLIENTE, &valor);
-    return valor;
-}
-
-static int ler_ativo(void) {
-    int valor = 0;
-    (void)ler_inteiro("Ativo", UI_MIN_ATIVO, UI_MAX_ATIVO, &valor);
-    return valor;
-}
-
-static int ler_ordem(const char *rotulo) {
-    int valor = 0;
-    (void)ler_inteiro(rotulo, UI_MIN_ORDEM, UI_MAX_ORDEM, &valor);
-    return valor;
-}
-
-static int ler_dinheiro(const char *rotulo) {
-    int valor = 0;
-    (void)ler_inteiro(rotulo, UI_MIN_VALOR, UI_MAX_DINHEIRO, &valor);
-    return valor;
-}
-
-static int ler_quantidade(void) {
-    int valor = 0;
-    (void)ler_inteiro("Quantidade", UI_MIN_VALOR, UI_MAX_QUANTIDADE, &valor);
-    return valor;
-}
-
-static int ler_preco(void) {
-    int valor = 0;
-    (void)ler_inteiro("Preco", UI_MIN_VALOR, UI_MAX_PRECO, &valor);
-    return valor;
-}
-
-/*
- * Interface textual para o sistema de bolsa gerado pelo Atelier-B.
- *
- * Esta interface:
- * - inclui somente o header gerado pelo Atelier-B;
- * - nao acessa variaveis internas da maquina;
- * - nao inclui arquivos .c gerados;
- * - chama apenas operacoes publicadas no .h;
- * - trata entrada invalida no nivel de UI;
- * - deixa as regras de negocio dentro das operacoes B.
- *
- * Ajuste o nome do header abaixo caso o gerador tenha produzido outro nome.
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <limits.h>
-
-#include "Bolsa_Valores_Imp.h"
+#include "bolsa_api.h"
+#include "console_ui.h"
 #include "demo_bolsa.h"
 
-#ifndef BOLSA_INIT
-#define BOLSA_INIT() Bolsa_Valores_Imp__INITIALISATION()
-#endif
+#define LINHA_TAM 128
 
-#ifndef OP_CADASTRAR_CLIENTE
-#define OP_CADASTRAR_CLIENTE(res, cliente) \
-    Bolsa_Valores_Imp__cadastrarCliente(&(res), (cliente))
-#endif
-
-#ifndef OP_CADASTRAR_ATIVO
-#define OP_CADASTRAR_ATIVO(res, ativo) \
-    Bolsa_Valores_Imp__cadastrarAtivo(&(res), (ativo))
-#endif
-
-#ifndef OP_DEPOSITAR_SALDO
-#define OP_DEPOSITAR_SALDO(res, cliente, valor) \
-    Bolsa_Valores_Imp__depositarSaldo(&(res), (cliente), (valor))
-#endif
-
-#ifndef OP_RETIRAR_SALDO
-#define OP_RETIRAR_SALDO(res, cliente, valor) \
-    Bolsa_Valores_Imp__retirarSaldo(&(res), (cliente), (valor))
-#endif
-
-#ifndef OP_CREDITAR_CUSTODIA
-#define OP_CREDITAR_CUSTODIA(res, cliente, ativo, quantidade) \
-    Bolsa_Valores_Imp__creditarCustodia(&(res), (cliente), (ativo), (quantidade))
-#endif
-
-#ifndef OP_ABRIR_ORDEM_COMPRA
-#define OP_ABRIR_ORDEM_COMPRA(res, ordem, cliente, ativo, quantidade, preco) \
-    Bolsa_Valores_Imp__abrirOrdemCompra(&(res), (ordem), (cliente), (ativo), (quantidade), (preco))
-#endif
-
-#ifndef OP_ABRIR_ORDEM_VENDA
-#define OP_ABRIR_ORDEM_VENDA(res, ordem, cliente, ativo, quantidade, preco) \
-    Bolsa_Valores_Imp__abrirOrdemVenda(&(res), (ordem), (cliente), (ativo), (quantidade), (preco))
-#endif
-
-#ifndef OP_EXECUTAR_CASAMENTO
-#define OP_EXECUTAR_CASAMENTO(res, compra, venda, quantidade, preco) \
-    Bolsa_Valores_Imp__executarCasamento(&(res), (compra), (venda), (quantidade), (preco))
-#endif
-
-#ifndef OP_CANCELAR_ORDEM
-#define OP_CANCELAR_ORDEM(res, ordem) \
-    Bolsa_Valores_Imp__cancelarOrdem(&(res), (ordem))
-#endif
-
-#ifndef OP_CONSULTAR_SALDO
-#define OP_CONSULTAR_SALDO(disponivel, bloqueado, cliente) \
-    Bolsa_Valores_Imp__consultarSaldo(&(disponivel), &(bloqueado), (cliente))
-#endif
-
-#ifndef OP_CONSULTAR_CUSTODIA
-#define OP_CONSULTAR_CUSTODIA(disponivel, bloqueado, cliente, ativo) \
-    Bolsa_Valores_Imp__consultarCustodia(&(disponivel), &(bloqueado), (cliente), (ativo))
-#endif
-
-#ifndef OP_CONSULTAR_STATUS_ORDEM
-#define OP_CONSULTAR_STATUS_ORDEM(status, ordem) \
-    Bolsa_Valores_Imp__consultarStatusOrdem(&(status), (ordem))
-#endif
-
-enum {
-    UI_MIN_CLIENTE = 1,
-    UI_MAX_CLIENTE = 20,
-    UI_MIN_ATIVO = 1,
-    UI_MAX_ATIVO = 10,
-    UI_MIN_ORDEM = 1,
-    UI_MAX_ORDEM = 50,
-    UI_MIN_VALOR = 1,
-    UI_MAX_DINHEIRO = 1000000,
-    UI_MAX_QUANTIDADE = 1000,
-    UI_MAX_PRECO = 1000,
-    B_ERRO = 0,
-    B_OK = 1
-};
-
-static void limpar_linha(void) {
-    int ch;
-    while ((ch = getchar()) != '\n' && ch != EOF) {
-        /* descarta */
+static void remover_quebra_linha(char *texto) {
+    if (texto != NULL) {
+        texto[strcspn(texto, "\r\n")] = '\0';
     }
 }
 
-static int ler_inteiro(const char *rotulo, int minimo, int maximo, int *saida) {
-    char buffer[128];
-    long valor;
-    char *fim = NULL;
+static void normalizar_minusculas(char *texto) {
+    if (texto == NULL) {
+        return;
+    }
 
-    if (saida == NULL) {
+    for (; *texto != '\0'; ++texto) {
+        *texto = (char)tolower((unsigned char)*texto);
+    }
+}
+
+static int ler_linha(const char *prompt, char *buffer, size_t tamanho) {
+    if (buffer == NULL || tamanho == 0) {
         return 0;
     }
 
-    for (;;) {
-        printf("%s [%d..%d]: ", rotulo, minimo, maximo);
+    printf("%s%s%s", ui_c(UI_CYAN), prompt, ui_c(UI_RESET));
 
-        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+    if (fgets(buffer, tamanho, stdin) == NULL) {
+        return 0;
+    }
+
+    remover_quebra_linha(buffer);
+    return 1;
+}
+
+static int parse_inteiro_exato(const char *texto, int32_t minimo, int32_t maximo, int32_t *saida) {
+    char *fim = NULL;
+    long valor;
+
+    if (texto == NULL || saida == NULL) {
+        return 0;
+    }
+
+    while (*texto == ' ' || *texto == '\t') {
+        texto++;
+    }
+
+    if (*texto == '\0') {
+        return 0;
+    }
+
+    errno = 0;
+    valor = strtol(texto, &fim, 10);
+
+    if (texto == fim || errno == ERANGE || valor < INT_MIN || valor > INT_MAX) {
+        return 0;
+    }
+
+    while (*fim == ' ' || *fim == '\t') {
+        fim++;
+    }
+
+    if (*fim != '\0') {
+        return 0;
+    }
+
+    if (valor < minimo || valor > maximo) {
+        return 0;
+    }
+
+    *saida = (int32_t)valor;
+    return 1;
+}
+
+static int ler_inteiro(const char *rotulo, int32_t minimo, int32_t maximo, int32_t *saida) {
+    char linha[LINHA_TAM];
+    char prompt[160];
+
+    for (;;) {
+        snprintf(prompt, sizeof(prompt), "%s [%d..%d]: ", rotulo, (int)minimo, (int)maximo);
+
+        if (!ler_linha(prompt, linha, sizeof(linha))) {
             return 0;
         }
 
-        errno = 0;
-        valor = strtol(buffer, &fim, 10);
-
-        if (errno == ERANGE || valor < INT_MIN || valor > INT_MAX) {
-            printf("Entrada fora do intervalo de inteiro.\n");
-            continue;
+        if (parse_inteiro_exato(linha, minimo, maximo, saida)) {
+            return 1;
         }
 
-        while (*fim == ' ' || *fim == '\t') {
-            fim++;
-        }
-
-        if (*fim != '\n' && *fim != '\0') {
-            printf("Digite apenas numeros inteiros.\n");
-            continue;
-        }
-
-        if (valor < minimo || valor > maximo) {
-            printf("Valor invalido. Use um numero entre %d e %d.\n", minimo, maximo);
-            continue;
-        }
-
-        *saida = (int)valor;
-        return 1;
+        ui_erro("Entrada invalida. Digite um numero inteiro dentro do intervalo.");
     }
 }
 
-static void mostrar_resultado(int resultado) {
-    if (resultado == B_OK) {
-        printf("Operacao realizada com sucesso.\n");
-    } else if (resultado == B_ERRO) {
-        printf("Operacao rejeitada pela maquina B.\n");
-    } else {
-        printf("Resultado inesperado retornado pela maquina: %d\n", resultado);
-    }
+static void mostrar_resultado(int32_t resultado) {
+    ui_resultado_operacao(resultado);
 }
 
-static const char *descricao_status(int codigo) {
-    switch (codigo) {
-        case 0: return "livre";
-        case 1: return "aberta";
-        case 2: return "cancelada";
-        case 3: return "executada";
-        default: return "desconhecido";
+static void debug_saldo(int32_t cliente_id) {
+    int32_t disponivel = 0;
+    int32_t bloqueado = 0;
+
+    printf("%s+---------+-------------+------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+    printf("%s| Cliente | Disponivel  | Bloqueado  |%s\n", ui_c(UI_BOLD), ui_c(UI_RESET));
+    printf("%s+---------+-------------+------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+
+    bolsa_consultar_saldo(cliente_id, &disponivel, &bloqueado);
+    printf("| %7d | %11d | %10d |\n", (int)cliente_id, (int)disponivel, (int)bloqueado);
+
+    printf("%s+---------+-------------+------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+}
+
+static void debug_custodia(int32_t cliente_id, int32_t ativo_id) {
+    int32_t disponivel = 0;
+    int32_t bloqueado = 0;
+
+    printf("%s+---------+-------+------------+-----------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+    printf("%s| Cliente | Ativo | Disponivel | Bloqueada |%s\n", ui_c(UI_BOLD), ui_c(UI_RESET));
+    printf("%s+---------+-------+------------+-----------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+
+    bolsa_consultar_custodia(cliente_id, ativo_id, &disponivel, &bloqueado);
+    printf("| %7d | %5d | %10d | %9d |\n",
+           (int)cliente_id,
+           (int)ativo_id,
+           (int)disponivel,
+           (int)bloqueado);
+
+    printf("%s+---------+-------+------------+-----------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+}
+
+static void debug_status_ordem(int32_t ordem_id) {
+    int32_t status = 0;
+
+    printf("%s+-------+------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+    printf("%s| Ordem | Status     |%s\n", ui_c(UI_BOLD), ui_c(UI_RESET));
+    printf("%s+-------+------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+
+    bolsa_consultar_status_ordem(ordem_id, &status);
+    printf("| %5d | %s%-10s%s |\n",
+           (int)ordem_id,
+           ui_cor_status(status),
+           ui_texto_status(status),
+           ui_c(UI_RESET));
+
+    printf("%s+-------+------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+}
+
+static int perguntar_sim_nao(const char *pergunta, int padrao_sim) {
+    char linha[LINHA_TAM];
+
+    for (;;) {
+        printf("%s%s [%s/%s]: %s",
+               ui_c(UI_CYAN),
+               pergunta,
+               padrao_sim ? "S" : "s",
+               padrao_sim ? "n" : "N",
+               ui_c(UI_RESET));
+
+        if (!ler_linha("", linha, sizeof(linha))) {
+            return padrao_sim;
+        }
+
+        normalizar_minusculas(linha);
+
+        if (linha[0] == '\0') {
+            return padrao_sim;
+        }
+
+        if (strcmp(linha, "s") == 0 || strcmp(linha, "sim") == 0) {
+            return 1;
+        }
+
+        if (strcmp(linha, "n") == 0 || strcmp(linha, "nao") == 0) {
+            return 0;
+        }
+
+        ui_alerta("Responda com s ou n.");
     }
 }
 
 static void menu(void) {
-    puts("");
-    puts("==== Sistema de Bolsa - Interface C ====");
-    puts("1  - Cadastrar cliente");
-    puts("2  - Cadastrar ativo");
-    puts("3  - Depositar saldo");
-    puts("4  - Retirar saldo");
-    puts("5  - Creditar custodia");
-    puts("6  - Abrir ordem de compra");
-    puts("7  - Abrir ordem de venda");
-    puts("8  - Executar casamento");
-    puts("9  - Cancelar ordem");
-    puts("10 - Consultar saldo");
-    puts("11 - Consultar custodia");
-    puts("12 - Consultar status da ordem");
-    puts("0  - Sair");
+    ui_titulo("Comandos disponiveis");
+
+    printf("%s+------------+----------------------------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+    printf("%s| Grupo      | Comandos                         |%s\n", ui_c(UI_BOLD), ui_c(UI_RESET));
+    printf("%s+------------+----------------------------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
+    printf("| %-10s | %-32s |\n", "Basico", "1 cliente | 2 ativo");
+    printf("| %-10s | %-32s |\n", "Financeiro", "3 depositar | 4 retirar");
+    printf("| %-10s | %-32s |\n", "Custodia", "5 creditar custodia");
+    printf("| %-10s | %-32s |\n", "Ordens", "6 compra | 7 venda | 8 casar");
+    printf("| %-10s | %-32s |\n", "Ordens", "9 cancelar");
+    printf("| %-10s | %-32s |\n", "Consultas", "10 saldo | 11 custodia | 12 status");
+    printf("| %-10s | %-32s |\n", "Demo", "estado | roteiro | total");
+    printf("| %-10s | %-32s |\n", "Demo", "parcial | invalida | cancelar");
+    printf("| %-10s | %-32s |\n", "Demo", "ativo2 | reset");
+    printf("| %-10s | %-32s |\n", "Sistema", "menu | sair");
+    printf("%s+------------+----------------------------------+%s\n", ui_c(UI_DIM), ui_c(UI_RESET));
 }
 
-static int ler_cliente(void) {
-    int valor = 0;
-    (void)ler_inteiro("Cliente", UI_MIN_CLIENTE, UI_MAX_CLIENTE, &valor);
-    return valor;
+static int recarregar_demo(void) {
+    bolsa_inicializar();
+
+    if (!demo_bolsa_popular()) {
+        ui_erro("Falha ao carregar dados de demonstracao.");
+        return 0;
+    }
+
+    return 1;
 }
 
-static int ler_ativo(void) {
-    int valor = 0;
-    (void)ler_inteiro("Ativo", UI_MIN_ATIVO, UI_MAX_ATIVO, &valor);
-    return valor;
+static int comando_para_codigo(char *comando, int32_t *codigo) {
+    if (comando == NULL || codigo == NULL) {
+        return 0;
+    }
+
+    normalizar_minusculas(comando);
+
+    if (strcmp(comando, "q") == 0 || strcmp(comando, "sair") == 0 || strcmp(comando, "exit") == 0) {
+        *codigo = 0;
+        return 1;
+    }
+
+    if (strcmp(comando, "m") == 0 || strcmp(comando, "menu") == 0 || strcmp(comando, "?") == 0 || strcmp(comando, "ajuda") == 0) {
+        *codigo = 99;
+        return 1;
+    }
+
+    if (strcmp(comando, "r") == 0 || strcmp(comando, "roteiro") == 0) {
+        *codigo = 13;
+        return 1;
+    }
+
+    if (strcmp(comando, "total") == 0) {
+        *codigo = 14;
+        return 1;
+    }
+
+    if (strcmp(comando, "parcial") == 0) {
+        *codigo = 15;
+        return 1;
+    }
+
+    if (strcmp(comando, "invalida") == 0) {
+        *codigo = 16;
+        return 1;
+    }
+
+    if (strcmp(comando, "cancelar") == 0) {
+        *codigo = 17;
+        return 1;
+    }
+
+    if (strcmp(comando, "estado") == 0 || strcmp(comando, "e") == 0) {
+        *codigo = 18;
+        return 1;
+    }
+
+    if (strcmp(comando, "reset") == 0 || strcmp(comando, "reiniciar") == 0) {
+        *codigo = 19;
+        return 1;
+    }
+
+    if (strcmp(comando, "ativo2") == 0) {
+        *codigo = 20;
+        return 1;
+    }
+
+    return parse_inteiro_exato(comando, 0, 99, codigo);
 }
 
-static int ler_ordem(const char *rotulo) {
-    int valor = 0;
-    (void)ler_inteiro(rotulo, UI_MIN_ORDEM, UI_MAX_ORDEM, &valor);
-    return valor;
-}
+static void executar_acao(int32_t opcao) {
+    int32_t resultado = BOLSA_ERRO;
 
-static int ler_dinheiro(const char *rotulo) {
-    int valor = 0;
-    (void)ler_inteiro(rotulo, UI_MIN_VALOR, UI_MAX_DINHEIRO, &valor);
-    return valor;
-}
+    switch (opcao) {
+        case 1: {
+            int32_t cliente = 0;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            resultado = bolsa_cadastrar_cliente(cliente);
+            mostrar_resultado(resultado);
+            debug_saldo(cliente);
+            break;
+        }
 
-static int ler_quantidade(void) {
-    int valor = 0;
-    (void)ler_inteiro("Quantidade", UI_MIN_VALOR, UI_MAX_QUANTIDADE, &valor);
-    return valor;
-}
+        case 2: {
+            int32_t ativo = 0;
+            if (!ler_inteiro("Ativo", BOLSA_MIN_ATIVO, BOLSA_MAX_ATIVO, &ativo)) return;
+            resultado = bolsa_cadastrar_ativo(ativo);
+            mostrar_resultado(resultado);
+            printf("%sAtivo:%s %d\n", ui_c(UI_BOLD), ui_c(UI_RESET), (int)ativo);
+            break;
+        }
 
-static int ler_preco(void) {
-    int valor = 0;
-    (void)ler_inteiro("Preco", UI_MIN_VALOR, UI_MAX_PRECO, &valor);
-    return valor;
+        case 3: {
+            int32_t cliente = 0, valor = 0;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            if (!ler_inteiro("Valor do deposito", BOLSA_MIN_VALOR, BOLSA_MAX_DINHEIRO, &valor)) return;
+            ui_secao("Antes");
+            debug_saldo(cliente);
+            resultado = bolsa_depositar_saldo(cliente, valor);
+            ui_secao("Resultado");
+            mostrar_resultado(resultado);
+            ui_secao("Depois");
+            debug_saldo(cliente);
+            break;
+        }
+
+        case 4: {
+            int32_t cliente = 0, valor = 0;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            if (!ler_inteiro("Valor da retirada", BOLSA_MIN_VALOR, BOLSA_MAX_DINHEIRO, &valor)) return;
+            ui_secao("Antes");
+            debug_saldo(cliente);
+            resultado = bolsa_retirar_saldo(cliente, valor);
+            ui_secao("Resultado");
+            mostrar_resultado(resultado);
+            ui_secao("Depois");
+            debug_saldo(cliente);
+            break;
+        }
+
+        case 5: {
+            int32_t cliente = 0, ativo = 0, quantidade = 0;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            if (!ler_inteiro("Ativo", BOLSA_MIN_ATIVO, BOLSA_MAX_ATIVO, &ativo)) return;
+            if (!ler_inteiro("Quantidade", BOLSA_MIN_VALOR, BOLSA_MAX_QUANTIDADE, &quantidade)) return;
+            ui_secao("Antes");
+            debug_custodia(cliente, ativo);
+            resultado = bolsa_creditar_custodia(cliente, ativo, quantidade);
+            ui_secao("Resultado");
+            mostrar_resultado(resultado);
+            ui_secao("Depois");
+            debug_custodia(cliente, ativo);
+            break;
+        }
+
+        case 6: {
+            int32_t ordem = 0, cliente = 0, ativo = 0, quantidade = 0, preco = 0;
+            if (!ler_inteiro("Ordem", BOLSA_MIN_ORDEM, BOLSA_MAX_ORDEM, &ordem)) return;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            if (!ler_inteiro("Ativo", BOLSA_MIN_ATIVO, BOLSA_MAX_ATIVO, &ativo)) return;
+            if (!ler_inteiro("Quantidade", BOLSA_MIN_VALOR, BOLSA_MAX_QUANTIDADE, &quantidade)) return;
+            if (!ler_inteiro("Preco limite", BOLSA_MIN_VALOR, BOLSA_MAX_PRECO, &preco)) return;
+            ui_secao("Antes");
+            debug_saldo(cliente);
+            debug_status_ordem(ordem);
+            resultado = bolsa_abrir_ordem_compra(ordem, cliente, ativo, quantidade, preco);
+            ui_secao("Resultado");
+            mostrar_resultado(resultado);
+            ui_secao("Depois");
+            debug_saldo(cliente);
+            debug_status_ordem(ordem);
+            break;
+        }
+
+        case 7: {
+            int32_t ordem = 0, cliente = 0, ativo = 0, quantidade = 0, preco = 0;
+            if (!ler_inteiro("Ordem", BOLSA_MIN_ORDEM, BOLSA_MAX_ORDEM, &ordem)) return;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            if (!ler_inteiro("Ativo", BOLSA_MIN_ATIVO, BOLSA_MAX_ATIVO, &ativo)) return;
+            if (!ler_inteiro("Quantidade", BOLSA_MIN_VALOR, BOLSA_MAX_QUANTIDADE, &quantidade)) return;
+            if (!ler_inteiro("Preco limite", BOLSA_MIN_VALOR, BOLSA_MAX_PRECO, &preco)) return;
+            ui_secao("Antes");
+            debug_custodia(cliente, ativo);
+            debug_status_ordem(ordem);
+            resultado = bolsa_abrir_ordem_venda(ordem, cliente, ativo, quantidade, preco);
+            ui_secao("Resultado");
+            mostrar_resultado(resultado);
+            ui_secao("Depois");
+            debug_custodia(cliente, ativo);
+            debug_status_ordem(ordem);
+            break;
+        }
+
+        case 8: {
+            int32_t ordem_compra = 0, ordem_venda = 0, quantidade = 0, preco = 0;
+            if (!ler_inteiro("Ordem de compra", BOLSA_MIN_ORDEM, BOLSA_MAX_ORDEM, &ordem_compra)) return;
+            if (!ler_inteiro("Ordem de venda", BOLSA_MIN_ORDEM, BOLSA_MAX_ORDEM, &ordem_venda)) return;
+            if (!ler_inteiro("Quantidade", BOLSA_MIN_VALOR, BOLSA_MAX_QUANTIDADE, &quantidade)) return;
+            if (!ler_inteiro("Preco de execucao", BOLSA_MIN_VALOR, BOLSA_MAX_PRECO, &preco)) return;
+            ui_secao("Antes");
+            debug_status_ordem(ordem_compra);
+            debug_status_ordem(ordem_venda);
+            resultado = bolsa_executar_casamento(ordem_compra, ordem_venda, quantidade, preco);
+            ui_secao("Resultado");
+            mostrar_resultado(resultado);
+            ui_secao("Depois");
+            debug_status_ordem(ordem_compra);
+            debug_status_ordem(ordem_venda);
+            break;
+        }
+
+        case 9: {
+            int32_t ordem = 0;
+            if (!ler_inteiro("Ordem", BOLSA_MIN_ORDEM, BOLSA_MAX_ORDEM, &ordem)) return;
+            ui_secao("Antes");
+            debug_status_ordem(ordem);
+            resultado = bolsa_cancelar_ordem(ordem);
+            ui_secao("Resultado");
+            mostrar_resultado(resultado);
+            ui_secao("Depois");
+            debug_status_ordem(ordem);
+            break;
+        }
+
+        case 10: {
+            int32_t cliente = 0;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            debug_saldo(cliente);
+            break;
+        }
+
+        case 11: {
+            int32_t cliente = 0, ativo = 0;
+            if (!ler_inteiro("Cliente", BOLSA_MIN_CLIENTE, BOLSA_MAX_CLIENTE, &cliente)) return;
+            if (!ler_inteiro("Ativo", BOLSA_MIN_ATIVO, BOLSA_MAX_ATIVO, &ativo)) return;
+            debug_custodia(cliente, ativo);
+            break;
+        }
+
+        case 12: {
+            int32_t ordem = 0;
+            if (!ler_inteiro("Ordem", BOLSA_MIN_ORDEM, BOLSA_MAX_ORDEM, &ordem)) return;
+            debug_status_ordem(ordem);
+            break;
+        }
+
+        case 13:
+            demo_bolsa_roteiro();
+            break;
+
+        case 14:
+            resultado = demo_bolsa_executar_total();
+            mostrar_resultado(resultado);
+            break;
+
+        case 15:
+            resultado = demo_bolsa_executar_parcial();
+            mostrar_resultado(resultado);
+            break;
+
+        case 16:
+            resultado = demo_bolsa_tentar_casamento_invalido();
+            mostrar_resultado(resultado);
+            break;
+
+        case 17:
+            resultado = demo_bolsa_cancelar_ordem_padrao();
+            mostrar_resultado(resultado);
+            break;
+
+        case 18:
+            demo_bolsa_estado_resumido();
+            break;
+
+        case 19:
+            if (perguntar_sim_nao("Isso reinicia todo o estado. Continuar?", 0)) {
+                if (recarregar_demo()) {
+                    ui_sucesso("Maquina reiniciada e demonstracao recarregada.");
+                }
+            } else {
+                ui_alerta("Reinicio cancelado.");
+            }
+            break;
+
+        case 20:
+            resultado = demo_bolsa_executar_ativo2();
+            mostrar_resultado(resultado);
+            break;
+
+        case 99:
+            menu();
+            break;
+
+        default:
+            ui_alerta("Comando numerico sem acao associada. Digite 'menu' para ver as opcoes.");
+            break;
+    }
 }
 
 int main(void) {
-    int opcao = -1;
-    int resultado = B_ERRO;
+    char comando[LINHA_TAM];
+    int32_t opcao = -1;
 
-    BOLSA_INIT();
+    bolsa_inicializar();
 
-    puts("Sistema iniciado.");
+    ui_titulo("Sistema de Bolsa");
 
-    if (!demo_bolsa_popular()) {
-        puts("Falha ao carregar dados de demonstracao.");
-        return EXIT_FAILURE;
-    }
-
-    demo_bolsa_roteiro();
-
-    while (opcao != 0) {
-        menu();
-
-        if (!ler_inteiro("Opcao", 0, 12, &opcao)) {
-            puts("Falha de leitura. Encerrando.");
+    if (perguntar_sim_nao("Carregar demonstracao rica agora?", 1)) {
+        if (!demo_bolsa_popular()) {
+            ui_erro("Falha ao carregar dados de demonstracao.");
             return EXIT_FAILURE;
         }
+    }
 
-        switch (opcao) {
-            case 0:
-                puts("Encerrando.");
-                break;
+    menu();
+    puts("Digite 'menu' quando quiser ver as opcoes novamente.");
 
-            case 1: {
-                int cliente = ler_cliente();
-                OP_CADASTRAR_CLIENTE(resultado, cliente);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 2: {
-                int ativo = ler_ativo();
-                OP_CADASTRAR_ATIVO(resultado, ativo);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 3: {
-                int cliente = ler_cliente();
-                int valor = ler_dinheiro("Valor do deposito");
-                OP_DEPOSITAR_SALDO(resultado, cliente, valor);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 4: {
-                int cliente = ler_cliente();
-                int valor = ler_dinheiro("Valor da retirada");
-                OP_RETIRAR_SALDO(resultado, cliente, valor);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 5: {
-                int cliente = ler_cliente();
-                int ativo = ler_ativo();
-                int quantidade = ler_quantidade();
-                OP_CREDITAR_CUSTODIA(resultado, cliente, ativo, quantidade);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 6: {
-                int ordem = ler_ordem("Ordem de compra");
-                int cliente = ler_cliente();
-                int ativo = ler_ativo();
-                int quantidade = ler_quantidade();
-                int preco = ler_preco();
-                OP_ABRIR_ORDEM_COMPRA(resultado, ordem, cliente, ativo, quantidade, preco);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 7: {
-                int ordem = ler_ordem("Ordem de venda");
-                int cliente = ler_cliente();
-                int ativo = ler_ativo();
-                int quantidade = ler_quantidade();
-                int preco = ler_preco();
-                OP_ABRIR_ORDEM_VENDA(resultado, ordem, cliente, ativo, quantidade, preco);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 8: {
-                int ordemCompra = ler_ordem("Ordem de compra");
-                int ordemVenda = ler_ordem("Ordem de venda");
-                int quantidade = ler_quantidade();
-                int preco = ler_preco();
-                OP_EXECUTAR_CASAMENTO(resultado, ordemCompra, ordemVenda, quantidade, preco);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 9: {
-                int ordem = ler_ordem("Ordem");
-                OP_CANCELAR_ORDEM(resultado, ordem);
-                mostrar_resultado(resultado);
-                break;
-            }
-
-            case 10: {
-                int cliente = ler_cliente();
-                int disponivel = 0;
-                int bloqueado = 0;
-                OP_CONSULTAR_SALDO(disponivel, bloqueado, cliente);
-                printf("Saldo disponivel: %d\n", disponivel);
-                printf("Saldo bloqueado : %d\n", bloqueado);
-                break;
-            }
-
-            case 11: {
-                int cliente = ler_cliente();
-                int ativo = ler_ativo();
-                int disponivel = 0;
-                int bloqueado = 0;
-                OP_CONSULTAR_CUSTODIA(disponivel, bloqueado, cliente, ativo);
-                printf("Custodia disponivel: %d\n", disponivel);
-                printf("Custodia bloqueada : %d\n", bloqueado);
-                break;
-            }
-
-            case 12: {
-                int ordem = ler_ordem("Ordem");
-                int status = -1;
-                OP_CONSULTAR_STATUS_ORDEM(status, ordem);
-                printf("Status da ordem: %d (%s)\n", status, descricao_status(status));
-                break;
-            }
-
-            case 13:
-                demo_bolsa_roteiro();
-                break;
-
-            default:
-                puts("Opcao invalida.");
-                break;
+    while (1) {
+        if (!ler_linha("bolsa> ", comando, sizeof(comando))) {
+            puts("\nEntrada encerrada.");
+            break;
         }
+
+        normalizar_minusculas(comando);
+
+        if (comando[0] == '\0') {
+            continue;
+        }
+
+        if (!comando_para_codigo(comando, &opcao)) {
+            ui_alerta("Comando invalido. Digite 'menu' ou '?' para ver as opcoes.");
+            continue;
+        }
+
+        if (opcao == 0) {
+            puts("Encerrando.");
+            break;
+        }
+
+        executar_acao(opcao);
     }
 
     return EXIT_SUCCESS;
