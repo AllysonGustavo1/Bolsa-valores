@@ -1,5 +1,17 @@
 # Sistema Simplificado de Bolsa de Valores com Método B
 
+## Informacoes do trabalho
+
+**Alunos:**
+ALLYSON GUSTAVO SILVA DO CARMO
+FRANKLIN CLAUDIO LOPES DE OLIVEIRA FILHO
+
+**Professor:**
+MARCEL VINICIUS MEDEIROS OLIVEIRA
+
+**Materia e turma:**
+DIM0516 - METODOS FORMAIS DE ENGENHARIA DE SOFTWARE - T01 (2026.1)
+
 ## 1. Tema e objetivo
 
 O projeto consiste no desenvolvimento formal de um sistema simplificado de bolsa de valores, utilizando o Método B para
@@ -126,16 +138,16 @@ operações e exibir o resultado, sem precisar implementar as regras de negócio
 
 Os invariantes garantem que o sistema permaneça consistente após cada operação. Entre as propriedades principais, estão:
 
-* clientes cadastrados pertencem ao intervalo válido de clientes;
-* ativos cadastrados pertencem ao intervalo válido de ativos;
-* saldos e custódias nunca assumem valores negativos;
-* saldos e custódias respeitam os limites máximos definidos;
-* ordens abertas sempre possuem cliente cadastrado, ativo cadastrado, quantidade positiva e preço positivo;
-* ordens livres, canceladas ou executadas possuem quantidade igual a zero;
-* uma ordem aberta sempre possui status coerente com seus dados;
-* o sistema não permite compra sem saldo suficiente;
-* o sistema não permite venda sem custódia suficiente;
-* o casamento só ocorre entre ordens compatíveis.
+- clientes cadastrados pertencem ao intervalo válido de clientes;
+- ativos cadastrados pertencem ao intervalo válido de ativos;
+- saldos e custódias nunca assumem valores negativos;
+- saldos e custódias respeitam os limites máximos definidos;
+- ordens abertas sempre possuem cliente cadastrado, ativo cadastrado, quantidade positiva e preço positivo;
+- ordens livres, canceladas ou executadas possuem quantidade igual a zero;
+- uma ordem aberta sempre possui status coerente com seus dados;
+- o sistema não permite compra sem saldo suficiente;
+- o sistema não permite venda sem custódia suficiente;
+- o casamento só ocorre entre ordens compatíveis.
 
 ## 7. Refinamento e implementação
 
