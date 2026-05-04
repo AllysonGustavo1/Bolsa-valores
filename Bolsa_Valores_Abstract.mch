@@ -18,8 +18,8 @@ VARIABLES
   statusOrdem
 
 INVARIANT
-  clientes <: (1..MAX_CLIENTES) &
-  ativos <: (1..MAX_ATIVOS) &
+  clientes <: 1..MAX_CLIENTES &
+  ativos <: 1..MAX_ATIVOS &
 
   saldoDisponivel : (1..MAX_CLIENTES) --> (0..MAX_DINHEIRO) &
   saldoBloqueado : (1..MAX_CLIENTES) --> (0..MAX_DINHEIRO) &
@@ -69,7 +69,7 @@ OPERATIONS
 
   resultado <-- cadastrarCliente(clienteId) =
     PRE
-      clienteId : (1..MAX_CLIENTES)
+      clienteId : 1..MAX_CLIENTES
     THEN
       IF clienteId /: clientes THEN
         clientes := clientes \/ {clienteId} ||
@@ -83,7 +83,7 @@ OPERATIONS
 
   resultado <-- cadastrarAtivo(ativoId) =
     PRE
-      ativoId : (1..MAX_ATIVOS)
+      ativoId : 1..MAX_ATIVOS
     THEN
       IF ativoId /: ativos THEN
         ativos := ativos \/ {ativoId} ||
@@ -95,8 +95,8 @@ OPERATIONS
 
   resultado <-- depositarSaldo(clienteId, valorDeposito) =
     PRE
-      clienteId : (1..MAX_CLIENTES) &
-      valorDeposito : (1..MAX_DINHEIRO)
+      clienteId : 1..MAX_CLIENTES &
+      valorDeposito : 1..MAX_DINHEIRO
     THEN
       IF clienteId : clientes &
          saldoDisponivel(clienteId) + valorDeposito <= MAX_DINHEIRO
@@ -111,8 +111,8 @@ OPERATIONS
 
   resultado <-- retirarSaldo(clienteId, valorRetirada) =
     PRE
-      clienteId : (1..MAX_CLIENTES) &
-      valorRetirada : (1..MAX_DINHEIRO)
+      clienteId : 1..MAX_CLIENTES &
+      valorRetirada : 1..MAX_DINHEIRO
     THEN
       IF clienteId : clientes &
          saldoDisponivel(clienteId) >= valorRetirada
@@ -127,9 +127,9 @@ OPERATIONS
 
   resultado <-- creditarCustodia(clienteId, ativoId, quantidade) =
     PRE
-      clienteId : (1..MAX_CLIENTES) &
-      ativoId : (1..MAX_ATIVOS) &
-      quantidade : (1..MAX_QUANTIDADE)
+      clienteId : 1..MAX_CLIENTES &
+      ativoId : 1..MAX_ATIVOS &
+      quantidade : 1..MAX_QUANTIDADE
     THEN
       IF clienteId : clientes &
          ativoId : ativos &
@@ -145,11 +145,11 @@ OPERATIONS
 
   resultado <-- abrirOrdemCompra(ordemId, clienteId, ativoId, quantidade, precoLimite) =
     PRE
-      ordemId : (1..MAX_ORDENS) &
-      clienteId : (1..MAX_CLIENTES) &
-      ativoId : (1..MAX_ATIVOS) &
-      quantidade : (1..MAX_QUANTIDADE) &
-      precoLimite : (1..MAX_PRECO)
+      ordemId : 1..MAX_ORDENS &
+      clienteId : 1..MAX_CLIENTES &
+      ativoId : 1..MAX_ATIVOS &
+      quantidade : 1..MAX_QUANTIDADE &
+      precoLimite : 1..MAX_PRECO
     THEN
       IF statusOrdem(ordemId) = status_livre &
          clienteId : clientes &
@@ -175,11 +175,11 @@ OPERATIONS
 
   resultado <-- abrirOrdemVenda(ordemId, clienteId, ativoId, quantidade, precoLimite) =
     PRE
-      ordemId : (1..MAX_ORDENS) &
-      clienteId : (1..MAX_CLIENTES) &
-      ativoId : (1..MAX_ATIVOS) &
-      quantidade : (1..MAX_QUANTIDADE) &
-      precoLimite : (1..MAX_PRECO)
+      ordemId : 1..MAX_ORDENS &
+      clienteId : 1..MAX_CLIENTES &
+      ativoId : 1..MAX_ATIVOS &
+      quantidade : 1..MAX_QUANTIDADE &
+      precoLimite : 1..MAX_PRECO
     THEN
       IF statusOrdem(ordemId) = status_livre &
          clienteId : clientes &
@@ -205,10 +205,10 @@ OPERATIONS
 
   resultado <-- executarCasamento(ordemCompra, ordemVenda, quantidadeExecucao, precoExecucao) =
     PRE
-      ordemCompra : (1..MAX_ORDENS) &
-      ordemVenda : (1..MAX_ORDENS) &
-      quantidadeExecucao : (1..MAX_QUANTIDADE) &
-      precoExecucao : (1..MAX_PRECO)
+      ordemCompra : 1..MAX_ORDENS &
+      ordemVenda : 1..MAX_ORDENS &
+      quantidadeExecucao : 1..MAX_QUANTIDADE &
+      precoExecucao : 1..MAX_PRECO
     THEN
       IF ordemCompra /= ordemVenda &
          statusOrdem(ordemCompra) = status_aberta &
@@ -271,7 +271,7 @@ OPERATIONS
 
   resultado <-- cancelarOrdem(ordemId) =
     PRE
-      ordemId : (1..MAX_ORDENS)
+      ordemId : 1..MAX_ORDENS
     THEN
       IF statusOrdem(ordemId) = status_aberta THEN
         IF tipoLadoOrdem(ordemId) = lado_compra THEN
@@ -306,7 +306,7 @@ OPERATIONS
 
   valorDisponivel, valorBloqueado <-- consultarSaldo(clienteId) =
     PRE
-      clienteId : (1..MAX_CLIENTES)
+      clienteId : 1..MAX_CLIENTES
     THEN
       valorDisponivel := saldoDisponivel(clienteId) ||
       valorBloqueado := saldoBloqueado(clienteId)
@@ -314,8 +314,8 @@ OPERATIONS
 
   quantidadeDisponivel, quantidadeBloqueada <-- consultarCustodia(clienteId, ativoId) =
     PRE
-      clienteId : (1..MAX_CLIENTES) &
-      ativoId : (1..MAX_ATIVOS)
+      clienteId : 1..MAX_CLIENTES &
+      ativoId : 1..MAX_ATIVOS
     THEN
       quantidadeDisponivel := custodiaDisponivel(clienteId |-> ativoId) ||
       quantidadeBloqueada := custodiaBloqueada(clienteId |-> ativoId)
@@ -323,7 +323,7 @@ OPERATIONS
 
   statusCodigo <-- consultarStatusOrdem(ordemId) =
     PRE
-      ordemId : (1..MAX_ORDENS)
+      ordemId : 1..MAX_ORDENS
     THEN
       IF statusOrdem(ordemId) = status_livre THEN
         statusCodigo := 0

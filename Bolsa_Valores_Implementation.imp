@@ -36,91 +36,37 @@ INVARIANT
   ativoListadoR = ativoListadoI &
   saldoDisponivelR = saldoDisponivelI &
   saldoBloqueadoR = saldoBloqueadoI &
+  custodiaDisponivelR = custodiaDisponivelI &
+  custodiaBloqueadaR = custodiaBloqueadaI &
   donoOrdemR = donoOrdemI &
   ativoOrdemR = ativoOrdemI &
   tipoLadoOrdemR = tipoLadoOrdemI &
   quantidadeOrdemR = quantidadeOrdemI &
   precoLimiteOrdemR = precoLimiteOrdemI &
-  statusOrdemR = statusOrdemI &
-
-  !(clienteId, ativoId).(
-    clienteId : 1..20 & ativoId : 1..10 =>
-      custodiaDisponivelR(clienteId |-> ativoId) =
-        custodiaDisponivelI(((clienteId - 1) * 10) + ativoId)
-  ) &
-  !(clienteId, ativoId).(
-    clienteId : 1..20 & ativoId : 1..10 =>
-      custodiaBloqueadaR(clienteId |-> ativoId) =
-        custodiaBloqueadaI(((clienteId - 1) * 10) + ativoId)
-  )
+  statusOrdemR = statusOrdemI
 
 INITIALISATION
-  VAR clienteIndice, ativoIndice, ordemIndice, indiceCustodia IN
-    clienteIndice := 1;
-    WHILE clienteIndice <= 20 DO
-      clienteAtivoI(clienteIndice) := FALSE;
-      saldoDisponivelI(clienteIndice) := 0;
-      saldoBloqueadoI(clienteIndice) := 0;
-      clienteIndice := clienteIndice + 1
-    INVARIANT
-      clienteIndice : INTEGER &
-      clienteIndice >= 1 &
-      clienteIndice <= 21
-    VARIANT
-      21 - clienteIndice
-    END;
-
-    ativoIndice := 1;
-    WHILE ativoIndice <= 10 DO
-      ativoListadoI(ativoIndice) := FALSE;
-      ativoIndice := ativoIndice + 1
-    INVARIANT
-      ativoIndice : INTEGER &
-      ativoIndice >= 1 &
-      ativoIndice <= 11
-    VARIANT
-      11 - ativoIndice
-    END;
-
-    indiceCustodia := 1;
-    WHILE indiceCustodia <= 200 DO
-      custodiaDisponivelI(indiceCustodia) := 0;
-      custodiaBloqueadaI(indiceCustodia) := 0;
-      indiceCustodia := indiceCustodia + 1
-    INVARIANT
-      indiceCustodia : INTEGER &
-      indiceCustodia >= 1 &
-      indiceCustodia <= 201
-    VARIANT
-      201 - indiceCustodia
-    END;
-
-    ordemIndice := 1;
-    WHILE ordemIndice <= 50 DO
-      donoOrdemI(ordemIndice) := 1;
-      ativoOrdemI(ordemIndice) := 1;
-      tipoLadoOrdemI(ordemIndice) := lado_compra;
-      quantidadeOrdemI(ordemIndice) := 0;
-      precoLimiteOrdemI(ordemIndice) := 0;
-      statusOrdemI(ordemIndice) := status_livre;
-      ordemIndice := ordemIndice + 1
-    INVARIANT
-      ordemIndice : INTEGER &
-      ordemIndice >= 1 &
-      ordemIndice <= 51
-    VARIANT
-      51 - ordemIndice
-    END
-  END
+  clienteAtivoI := (1..20) * {FALSE};
+  ativoListadoI := (1..10) * {FALSE};
+  saldoDisponivelI := (1..20) * {0};
+  saldoBloqueadoI := (1..20) * {0};
+  custodiaDisponivelI := (1..200) * {0};
+  custodiaBloqueadaI := (1..200) * {0};
+  donoOrdemI := (1..50) * {1};
+  ativoOrdemI := (1..50) * {1};
+  tipoLadoOrdemI := (1..50) * {lado_compra};
+  quantidadeOrdemI := (1..50) * {0};
+  precoLimiteOrdemI := (1..50) * {0};
+  statusOrdemI := (1..50) * {status_livre}
 
 OPERATIONS
 
   resultado <-- cadastrarCliente(clienteId) =
     BEGIN
-      VAR idxCliente, cadastrado IN
+      VAR idxCliente, cadastroAtual IN
         idxCliente := clienteId;
-        cadastrado := clienteAtivoI(idxCliente);
-        IF cadastrado = FALSE THEN
+        cadastroAtual := clienteAtivoI(idxCliente);
+        IF cadastroAtual = FALSE THEN
           clienteAtivoI(idxCliente) := TRUE;
           saldoDisponivelI(idxCliente) := 0;
           saldoBloqueadoI(idxCliente) := 0;
@@ -133,10 +79,10 @@ OPERATIONS
 
   resultado <-- cadastrarAtivo(ativoId) =
     BEGIN
-      VAR idxAtivo, listado IN
+      VAR idxAtivo, cadastroAtual IN
         idxAtivo := ativoId;
-        listado := ativoListadoI(idxAtivo);
-        IF listado = FALSE THEN
+        cadastroAtual := ativoListadoI(idxAtivo);
+        IF cadastroAtual = FALSE THEN
           ativoListadoI(idxAtivo) := TRUE;
           resultado := OK
         ELSE
@@ -147,12 +93,12 @@ OPERATIONS
 
   resultado <-- depositarSaldo(clienteId, valorDeposito) =
     BEGIN
-      VAR idxCliente, cadastrado, saldoAtual, novoSaldo IN
+      VAR idxCliente, saldoAtual, novoSaldo, clienteCadastrado IN
         idxCliente := clienteId;
-        cadastrado := clienteAtivoI(idxCliente);
+        clienteCadastrado := clienteAtivoI(idxCliente);
         saldoAtual := saldoDisponivelI(idxCliente);
         novoSaldo := saldoAtual + valorDeposito;
-        IF cadastrado = TRUE & novoSaldo <= 1000000 THEN
+        IF clienteCadastrado = TRUE & novoSaldo <= 1000000 THEN
           saldoDisponivelI(idxCliente) := novoSaldo;
           resultado := OK
         ELSE
@@ -163,12 +109,12 @@ OPERATIONS
 
   resultado <-- retirarSaldo(clienteId, valorRetirada) =
     BEGIN
-      VAR idxCliente, cadastrado, saldoAtual, novoSaldo IN
+      VAR idxCliente, saldoAtual, novoSaldo, clienteCadastrado IN
         idxCliente := clienteId;
-        cadastrado := clienteAtivoI(idxCliente);
+        clienteCadastrado := clienteAtivoI(idxCliente);
         saldoAtual := saldoDisponivelI(idxCliente);
-        novoSaldo := saldoAtual - valorRetirada;
-        IF cadastrado = TRUE & saldoAtual >= valorRetirada THEN
+        IF clienteCadastrado = TRUE & saldoAtual >= valorRetirada THEN
+          novoSaldo := saldoAtual - valorRetirada;
           saldoDisponivelI(idxCliente) := novoSaldo;
           resultado := OK
         ELSE
@@ -179,16 +125,21 @@ OPERATIONS
 
   resultado <-- creditarCustodia(clienteId, ativoId, quantidade) =
     BEGIN
-      VAR idxCliente, idxAtivo, indiceCustodia, cadastrado, listado, custodiaAtual, novaCustodia IN
+      VAR idxCliente, idxAtivo, idxCustodia, clienteCadastrado, ativoCadastrado,
+          custodiaAtual, novaCustodia
+      IN
         idxCliente := clienteId;
         idxAtivo := ativoId;
-        indiceCustodia := ((idxCliente - 1) * 10) + idxAtivo;
-        cadastrado := clienteAtivoI(idxCliente);
-        listado := ativoListadoI(idxAtivo);
-        custodiaAtual := custodiaDisponivelI(indiceCustodia);
+        idxCustodia := ((idxCliente - 1) * 10) + idxAtivo;
+        clienteCadastrado := clienteAtivoI(idxCliente);
+        ativoCadastrado := ativoListadoI(idxAtivo);
+        custodiaAtual := custodiaDisponivelI(idxCustodia);
         novaCustodia := custodiaAtual + quantidade;
-        IF cadastrado = TRUE & listado = TRUE & novaCustodia <= 1000000 THEN
-          custodiaDisponivelI(indiceCustodia) := novaCustodia;
+        IF clienteCadastrado = TRUE &
+           ativoCadastrado = TRUE &
+           novaCustodia <= 1000000
+        THEN
+          custodiaDisponivelI(idxCustodia) := novaCustodia;
           resultado := OK
         ELSE
           resultado := ERRO
@@ -198,29 +149,29 @@ OPERATIONS
 
   resultado <-- abrirOrdemCompra(ordemId, clienteId, ativoId, quantidade, precoLimite) =
     BEGIN
-      VAR idxOrdem, idxCliente, idxAtivo, statusAtual, cadastrado, listado,
-          saldoAtual, bloqueadoAtual, valorOrdem, novoSaldo, novoBloqueado
+      VAR idxOrdem, idxCliente, idxAtivo, clienteCadastrado, ativoCadastrado,
+          statusAtual, saldoAtual, bloqueadoAtual, valorOrdem,
+          novoSaldoDisponivel, novoSaldoBloqueado
       IN
         idxOrdem := ordemId;
         idxCliente := clienteId;
         idxAtivo := ativoId;
+        clienteCadastrado := clienteAtivoI(idxCliente);
+        ativoCadastrado := ativoListadoI(idxAtivo);
         statusAtual := statusOrdemI(idxOrdem);
-        cadastrado := clienteAtivoI(idxCliente);
-        listado := ativoListadoI(idxAtivo);
         saldoAtual := saldoDisponivelI(idxCliente);
         bloqueadoAtual := saldoBloqueadoI(idxCliente);
         valorOrdem := quantidade * precoLimite;
-        novoSaldo := saldoAtual - valorOrdem;
-        novoBloqueado := bloqueadoAtual + valorOrdem;
-
+        novoSaldoBloqueado := bloqueadoAtual + valorOrdem;
         IF statusAtual = status_livre &
-           cadastrado = TRUE &
-           listado = TRUE &
+           clienteCadastrado = TRUE &
+           ativoCadastrado = TRUE &
            saldoAtual >= valorOrdem &
-           novoBloqueado <= 1000000
+           novoSaldoBloqueado <= 1000000
         THEN
-          saldoDisponivelI(idxCliente) := novoSaldo;
-          saldoBloqueadoI(idxCliente) := novoBloqueado;
+          novoSaldoDisponivel := saldoAtual - valorOrdem;
+          saldoDisponivelI(idxCliente) := novoSaldoDisponivel;
+          saldoBloqueadoI(idxCliente) := novoSaldoBloqueado;
           donoOrdemI(idxOrdem) := idxCliente;
           ativoOrdemI(idxOrdem) := idxAtivo;
           tipoLadoOrdemI(idxOrdem) := lado_compra;
@@ -236,29 +187,29 @@ OPERATIONS
 
   resultado <-- abrirOrdemVenda(ordemId, clienteId, ativoId, quantidade, precoLimite) =
     BEGIN
-      VAR idxOrdem, idxCliente, idxAtivo, indiceCustodia, statusAtual, cadastrado, listado,
-          custodiaAtual, bloqueadaAtual, novaCustodia, novaBloqueada
+      VAR idxOrdem, idxCliente, idxAtivo, idxCustodia, clienteCadastrado, ativoCadastrado,
+          statusAtual, custodiaAtual, custodiaBloqueadaAtual,
+          novaCustodiaDisponivel, novaCustodiaBloqueada
       IN
         idxOrdem := ordemId;
         idxCliente := clienteId;
         idxAtivo := ativoId;
-        indiceCustodia := ((idxCliente - 1) * 10) + idxAtivo;
+        idxCustodia := ((idxCliente - 1) * 10) + idxAtivo;
+        clienteCadastrado := clienteAtivoI(idxCliente);
+        ativoCadastrado := ativoListadoI(idxAtivo);
         statusAtual := statusOrdemI(idxOrdem);
-        cadastrado := clienteAtivoI(idxCliente);
-        listado := ativoListadoI(idxAtivo);
-        custodiaAtual := custodiaDisponivelI(indiceCustodia);
-        bloqueadaAtual := custodiaBloqueadaI(indiceCustodia);
-        novaCustodia := custodiaAtual - quantidade;
-        novaBloqueada := bloqueadaAtual + quantidade;
-
+        custodiaAtual := custodiaDisponivelI(idxCustodia);
+        custodiaBloqueadaAtual := custodiaBloqueadaI(idxCustodia);
+        novaCustodiaBloqueada := custodiaBloqueadaAtual + quantidade;
         IF statusAtual = status_livre &
-           cadastrado = TRUE &
-           listado = TRUE &
+           clienteCadastrado = TRUE &
+           ativoCadastrado = TRUE &
            custodiaAtual >= quantidade &
-           novaBloqueada <= 1000000
+           novaCustodiaBloqueada <= 1000000
         THEN
-          custodiaDisponivelI(indiceCustodia) := novaCustodia;
-          custodiaBloqueadaI(indiceCustodia) := novaBloqueada;
+          novaCustodiaDisponivel := custodiaAtual - quantidade;
+          custodiaDisponivelI(idxCustodia) := novaCustodiaDisponivel;
+          custodiaBloqueadaI(idxCustodia) := novaCustodiaBloqueada;
           donoOrdemI(idxOrdem) := idxCliente;
           ativoOrdemI(idxOrdem) := idxAtivo;
           tipoLadoOrdemI(idxOrdem) := lado_venda;
@@ -277,13 +228,13 @@ OPERATIONS
       VAR idxCompra, idxVenda, comprador, vendedor, ativoCompra, ativoVenda,
           statusCompra, statusVenda, ladoCompra, ladoVenda,
           precoCompra, precoVenda, qtdCompra, qtdVenda,
-          idxCustComprador, idxCustVendedor,
-          saldoBloqComprador, saldoDispComprador, saldoDispVendedor,
+          saldoBloqueadoComprador, saldoDispComprador, saldoDispVendedor,
+          idxCustodiaComprador, idxCustodiaVendedor,
           custBloqVendedor, custDispComprador,
-          valorBloqueado, valorExecutado, valorDevolvido,
-          novoSaldoBloqComprador, novoSaldoDispComprador, novoSaldoDispVendedor,
-          novaCustBloqVendedor, novaCustDispComprador,
-          novaQtdCompra, novaQtdVenda
+          valorBloqueadoCompra, valorExecutado, valorDevolvido,
+          novoSaldoBloqueadoComprador, novoSaldoDisponivelComprador, novoSaldoDisponivelVendedor,
+          novaCustodiaBloqueadaVendedor, novaCustodiaDisponivelComprador,
+          novaQuantidadeCompra, novaQuantidadeVenda
       IN
         idxCompra := ordemCompra;
         idxVenda := ordemVenda;
@@ -299,23 +250,19 @@ OPERATIONS
         precoVenda := precoLimiteOrdemI(idxVenda);
         qtdCompra := quantidadeOrdemI(idxCompra);
         qtdVenda := quantidadeOrdemI(idxVenda);
-        idxCustComprador := ((comprador - 1) * 10) + ativoCompra;
-        idxCustVendedor := ((vendedor - 1) * 10) + ativoVenda;
-        saldoBloqComprador := saldoBloqueadoI(comprador);
+        idxCustodiaComprador := ((comprador - 1) * 10) + ativoCompra;
+        idxCustodiaVendedor := ((vendedor - 1) * 10) + ativoCompra;
+        saldoBloqueadoComprador := saldoBloqueadoI(comprador);
         saldoDispComprador := saldoDisponivelI(comprador);
         saldoDispVendedor := saldoDisponivelI(vendedor);
-        custBloqVendedor := custodiaBloqueadaI(idxCustVendedor);
-        custDispComprador := custodiaDisponivelI(idxCustComprador);
-        valorBloqueado := quantidadeExecucao * precoCompra;
+        custBloqVendedor := custodiaBloqueadaI(idxCustodiaVendedor);
+        custDispComprador := custodiaDisponivelI(idxCustodiaComprador);
+        valorBloqueadoCompra := quantidadeExecucao * precoCompra;
         valorExecutado := quantidadeExecucao * precoExecucao;
         valorDevolvido := quantidadeExecucao * (precoCompra - precoExecucao);
-        novoSaldoBloqComprador := saldoBloqComprador - valorBloqueado;
-        novoSaldoDispComprador := saldoDispComprador + valorDevolvido;
-        novoSaldoDispVendedor := saldoDispVendedor + valorExecutado;
-        novaCustBloqVendedor := custBloqVendedor - quantidadeExecucao;
-        novaCustDispComprador := custDispComprador + quantidadeExecucao;
-        novaQtdCompra := qtdCompra - quantidadeExecucao;
-        novaQtdVenda := qtdVenda - quantidadeExecucao;
+        novoSaldoDisponivelComprador := saldoDispComprador + valorDevolvido;
+        novoSaldoDisponivelVendedor := saldoDispVendedor + valorExecutado;
+        novaCustodiaDisponivelComprador := custDispComprador + quantidadeExecucao;
 
         IF idxCompra /= idxVenda &
            statusCompra = status_aberta &
@@ -329,27 +276,32 @@ OPERATIONS
            precoExecucao <= precoCompra &
            quantidadeExecucao <= qtdCompra &
            quantidadeExecucao <= qtdVenda &
-           saldoBloqComprador >= valorBloqueado &
+           saldoBloqueadoComprador >= valorBloqueadoCompra &
            custBloqVendedor >= quantidadeExecucao &
-           novoSaldoDispComprador <= 1000000 &
-           novoSaldoDispVendedor <= 1000000 &
-           novaCustDispComprador <= 1000000
+           novoSaldoDisponivelComprador <= 1000000 &
+           novoSaldoDisponivelVendedor <= 1000000 &
+           novaCustodiaDisponivelComprador <= 1000000
         THEN
-          saldoBloqueadoI(comprador) := novoSaldoBloqComprador;
-          saldoDisponivelI(comprador) := novoSaldoDispComprador;
-          saldoDisponivelI(vendedor) := novoSaldoDispVendedor;
-          custodiaBloqueadaI(idxCustVendedor) := novaCustBloqVendedor;
-          custodiaDisponivelI(idxCustComprador) := novaCustDispComprador;
-          quantidadeOrdemI(idxCompra) := novaQtdCompra;
-          quantidadeOrdemI(idxVenda) := novaQtdVenda;
+          novoSaldoBloqueadoComprador := saldoBloqueadoComprador - valorBloqueadoCompra;
+          novaCustodiaBloqueadaVendedor := custBloqVendedor - quantidadeExecucao;
+          novaQuantidadeCompra := qtdCompra - quantidadeExecucao;
+          novaQuantidadeVenda := qtdVenda - quantidadeExecucao;
 
-          IF novaQtdCompra = 0 THEN
+          saldoBloqueadoI(comprador) := novoSaldoBloqueadoComprador;
+          saldoDisponivelI(comprador) := novoSaldoDisponivelComprador;
+          saldoDisponivelI(vendedor) := novoSaldoDisponivelVendedor;
+          custodiaBloqueadaI(idxCustodiaVendedor) := novaCustodiaBloqueadaVendedor;
+          custodiaDisponivelI(idxCustodiaComprador) := novaCustodiaDisponivelComprador;
+          quantidadeOrdemI(idxCompra) := novaQuantidadeCompra;
+          quantidadeOrdemI(idxVenda) := novaQuantidadeVenda;
+
+          IF novaQuantidadeCompra = 0 THEN
             statusOrdemI(idxCompra) := status_executada
           ELSE
             statusOrdemI(idxCompra) := status_aberta
           END;
 
-          IF novaQtdVenda = 0 THEN
+          IF novaQuantidadeVenda = 0 THEN
             statusOrdemI(idxVenda) := status_executada
           ELSE
             statusOrdemI(idxVenda) := status_aberta
@@ -364,33 +316,35 @@ OPERATIONS
 
   resultado <-- cancelarOrdem(ordemId) =
     BEGIN
-      VAR idxOrdem, clienteId, ativoId, indiceCustodia, statusAtual, ladoAtual,
-          qtdAtual, precoAtual, saldoDisp, saldoBloq, custDisp, custBloq,
-          valorDevolvido, novoSaldoDisp, novoSaldoBloq, novaCustDisp, novaCustBloq
+      VAR idxOrdem, clienteId, ativoId, tipoOrdem, statusAtual, quantidadeAtual, precoAtual,
+          idxCustodia, valorDevolvido,
+          saldoAtual, saldoBloqueadoAtual, novoSaldoDisponivel, novoSaldoBloqueado,
+          custodiaAtual, custodiaBloqueadaAtual, novaCustodiaDisponivel, novaCustodiaBloqueada
       IN
         idxOrdem := ordemId;
         clienteId := donoOrdemI(idxOrdem);
         ativoId := ativoOrdemI(idxOrdem);
-        indiceCustodia := ((clienteId - 1) * 10) + ativoId;
+        tipoOrdem := tipoLadoOrdemI(idxOrdem);
         statusAtual := statusOrdemI(idxOrdem);
-        ladoAtual := tipoLadoOrdemI(idxOrdem);
-        qtdAtual := quantidadeOrdemI(idxOrdem);
+        quantidadeAtual := quantidadeOrdemI(idxOrdem);
         precoAtual := precoLimiteOrdemI(idxOrdem);
-        saldoDisp := saldoDisponivelI(clienteId);
-        saldoBloq := saldoBloqueadoI(clienteId);
-        custDisp := custodiaDisponivelI(indiceCustodia);
-        custBloq := custodiaBloqueadaI(indiceCustodia);
-        valorDevolvido := qtdAtual * precoAtual;
-        novoSaldoDisp := saldoDisp + valorDevolvido;
-        novoSaldoBloq := saldoBloq - valorDevolvido;
-        novaCustDisp := custDisp + qtdAtual;
-        novaCustBloq := custBloq - qtdAtual;
+        idxCustodia := ((clienteId - 1) * 10) + ativoId;
+        valorDevolvido := quantidadeAtual * precoAtual;
+        saldoAtual := saldoDisponivelI(clienteId);
+        saldoBloqueadoAtual := saldoBloqueadoI(clienteId);
+        novoSaldoDisponivel := saldoAtual + valorDevolvido;
+        custodiaAtual := custodiaDisponivelI(idxCustodia);
+        custodiaBloqueadaAtual := custodiaBloqueadaI(idxCustodia);
+        novaCustodiaDisponivel := custodiaAtual + quantidadeAtual;
 
         IF statusAtual = status_aberta THEN
-          IF ladoAtual = lado_compra THEN
-            IF saldoBloq >= valorDevolvido & novoSaldoDisp <= 1000000 THEN
-              saldoDisponivelI(clienteId) := novoSaldoDisp;
-              saldoBloqueadoI(clienteId) := novoSaldoBloq;
+          IF tipoOrdem = lado_compra THEN
+            IF saldoBloqueadoAtual >= valorDevolvido &
+               novoSaldoDisponivel <= 1000000
+            THEN
+              novoSaldoBloqueado := saldoBloqueadoAtual - valorDevolvido;
+              saldoDisponivelI(clienteId) := novoSaldoDisponivel;
+              saldoBloqueadoI(clienteId) := novoSaldoBloqueado;
               quantidadeOrdemI(idxOrdem) := 0;
               statusOrdemI(idxOrdem) := status_cancelada;
               resultado := OK
@@ -398,9 +352,12 @@ OPERATIONS
               resultado := ERRO
             END
           ELSE
-            IF custBloq >= qtdAtual & novaCustDisp <= 1000000 THEN
-              custodiaDisponivelI(indiceCustodia) := novaCustDisp;
-              custodiaBloqueadaI(indiceCustodia) := novaCustBloq;
+            IF custodiaBloqueadaAtual >= quantidadeAtual &
+               novaCustodiaDisponivel <= 1000000
+            THEN
+              novaCustodiaBloqueada := custodiaBloqueadaAtual - quantidadeAtual;
+              custodiaDisponivelI(idxCustodia) := novaCustodiaDisponivel;
+              custodiaBloqueadaI(idxCustodia) := novaCustodiaBloqueada;
               quantidadeOrdemI(idxOrdem) := 0;
               statusOrdemI(idxOrdem) := status_cancelada;
               resultado := OK
@@ -416,25 +373,21 @@ OPERATIONS
 
   valorDisponivel, valorBloqueado <-- consultarSaldo(clienteId) =
     BEGIN
-      VAR idxCliente, saldoDisp, saldoBloq IN
+      VAR idxCliente IN
         idxCliente := clienteId;
-        saldoDisp := saldoDisponivelI(idxCliente);
-        saldoBloq := saldoBloqueadoI(idxCliente);
-        valorDisponivel := saldoDisp;
-        valorBloqueado := saldoBloq
+        valorDisponivel := saldoDisponivelI(idxCliente);
+        valorBloqueado := saldoBloqueadoI(idxCliente)
       END
     END;
 
   quantidadeDisponivel, quantidadeBloqueada <-- consultarCustodia(clienteId, ativoId) =
     BEGIN
-      VAR idxCliente, idxAtivo, indiceCustodia, custDisp, custBloq IN
+      VAR idxCliente, idxAtivo, idxCustodia IN
         idxCliente := clienteId;
         idxAtivo := ativoId;
-        indiceCustodia := ((idxCliente - 1) * 10) + idxAtivo;
-        custDisp := custodiaDisponivelI(indiceCustodia);
-        custBloq := custodiaBloqueadaI(indiceCustodia);
-        quantidadeDisponivel := custDisp;
-        quantidadeBloqueada := custBloq
+        idxCustodia := ((idxCliente - 1) * 10) + idxAtivo;
+        quantidadeDisponivel := custodiaDisponivelI(idxCustodia);
+        quantidadeBloqueada := custodiaBloqueadaI(idxCustodia)
       END
     END;
 
