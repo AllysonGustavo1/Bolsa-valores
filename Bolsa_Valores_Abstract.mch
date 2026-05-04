@@ -77,7 +77,7 @@ OPERATIONS
         saldoBloqueado := saldoBloqueado <+ {clienteId |-> 0} ||
         resultado := OK
       ELSE
-        resultado := ERRO
+        resultado := ERRO_CLIENTE_JA_CADASTRADO
       END
     END;
 
@@ -89,7 +89,7 @@ OPERATIONS
         ativos := ativos \/ {ativoId} ||
         resultado := OK
       ELSE
-        resultado := ERRO
+        resultado := ERRO_ATIVO_JA_CADASTRADO
       END
     END;
 
@@ -105,7 +105,7 @@ OPERATIONS
           {clienteId |-> saldoDisponivel(clienteId) + valorDeposito} ||
         resultado := OK
       ELSE
-        resultado := ERRO
+        resultado := ERRO_DEPOSITO_INVALIDO
       END
     END;
 
@@ -121,7 +121,7 @@ OPERATIONS
           {clienteId |-> saldoDisponivel(clienteId) - valorRetirada} ||
         resultado := OK
       ELSE
-        resultado := ERRO
+        resultado := ERRO_SALDO_INSUFICIENTE
       END
     END;
 
@@ -139,7 +139,7 @@ OPERATIONS
           {(clienteId |-> ativoId) |-> custodiaDisponivel(clienteId |-> ativoId) + quantidade} ||
         resultado := OK
       ELSE
-        resultado := ERRO
+        resultado := ERRO_CUSTODIA_INVALIDA
       END
     END;
 
@@ -169,7 +169,7 @@ OPERATIONS
         statusOrdem := statusOrdem <+ {ordemId |-> status_aberta} ||
         resultado := OK
       ELSE
-        resultado := ERRO
+        resultado := ERRO_ABERTURA_COMPRA_INVALIDA
       END
     END;
 
@@ -199,7 +199,7 @@ OPERATIONS
         statusOrdem := statusOrdem <+ {ordemId |-> status_aberta} ||
         resultado := OK
       ELSE
-        resultado := ERRO
+        resultado := ERRO_ABERTURA_VENDA_INVALIDA
       END
     END;
 
@@ -265,7 +265,7 @@ OPERATIONS
           END
         END
       ELSE
-        resultado := ERRO
+        resultado := ERRO_CASAMENTO_INVALIDO
       END
     END;
 
@@ -284,7 +284,7 @@ OPERATIONS
             statusOrdem := statusOrdem <+ {ordemId |-> status_cancelada} ||
             resultado := OK
           ELSE
-            resultado := ERRO
+            resultado := ERRO_LIMITE_EXCEDIDO
           END
         ELSE
           IF custodiaBloqueada(donoOrdem(ordemId) |-> ativoOrdem(ordemId)) >= quantidadeOrdem(ordemId) &
@@ -296,11 +296,11 @@ OPERATIONS
             statusOrdem := statusOrdem <+ {ordemId |-> status_cancelada} ||
             resultado := OK
           ELSE
-            resultado := ERRO
+            resultado := ERRO_LIMITE_EXCEDIDO
           END
         END
       ELSE
-        resultado := ERRO
+        resultado := ERRO_ORDEM_NAO_ABERTA
       END
     END;
 
@@ -339,5 +339,4 @@ OPERATIONS
         END
       END
     END
-
 END

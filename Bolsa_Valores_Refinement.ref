@@ -91,7 +91,7 @@ OPERATIONS
           saldoBloqueadoR := saldoBloqueadoR <+ {idxCliente |-> 0} ||
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_CLIENTE_JA_CADASTRADO
         END
       END
     END;
@@ -108,7 +108,7 @@ OPERATIONS
           ativoListadoR := ativoListadoR <+ {idxAtivo |-> TRUE} ||
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ATIVO_JA_CADASTRADO
         END
       END
     END;
@@ -129,7 +129,7 @@ OPERATIONS
             {idxCliente |-> saldoDisponivelR(idxCliente) + valorDeposito} ||
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_DEPOSITO_INVALIDO
         END
       END
     END;
@@ -150,7 +150,7 @@ OPERATIONS
             {idxCliente |-> saldoDisponivelR(idxCliente) - valorRetirada} ||
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_SALDO_INSUFICIENTE
         END
       END
     END;
@@ -177,7 +177,7 @@ OPERATIONS
             {idxCustodia |-> custodiaDisponivelR(idxCustodia) + quantidade} ||
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_CUSTODIA_INVALIDA
         END
       END
     END;
@@ -216,7 +216,7 @@ OPERATIONS
           statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_aberta} ||
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ABERTURA_COMPRA_INVALIDA
         END
       END
     END;
@@ -257,7 +257,7 @@ OPERATIONS
           statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_aberta} ||
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ABERTURA_VENDA_INVALIDA
         END
       END
     END;
@@ -384,7 +384,7 @@ OPERATIONS
             END
           END
         ELSE
-          resultado := ERRO
+          resultado := ERRO_CASAMENTO_INVALIDO
         END
       END
     END;
@@ -418,7 +418,7 @@ OPERATIONS
               statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_cancelada} ||
               resultado := OK
             ELSE
-              resultado := ERRO
+              resultado := ERRO_LIMITE_EXCEDIDO
             END
           ELSE
             IF custodiaBloqueadaR(idxCustodia) >= quantidadeOrdemR(idxOrdem) &
@@ -432,11 +432,11 @@ OPERATIONS
               statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_cancelada} ||
               resultado := OK
             ELSE
-              resultado := ERRO
+              resultado := ERRO_LIMITE_EXCEDIDO
             END
           END
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ORDEM_NAO_ABERTA
         END
       END
     END;
@@ -495,5 +495,4 @@ OPERATIONS
         END
       END
     END
-
 END

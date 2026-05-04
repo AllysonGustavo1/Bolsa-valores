@@ -72,7 +72,7 @@ OPERATIONS
           saldoBloqueadoI(idxCliente) := 0;
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_CLIENTE_JA_CADASTRADO
         END
       END
     END;
@@ -86,7 +86,7 @@ OPERATIONS
           ativoListadoI(idxAtivo) := TRUE;
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ATIVO_JA_CADASTRADO
         END
       END
     END;
@@ -102,7 +102,7 @@ OPERATIONS
           saldoDisponivelI(idxCliente) := novoSaldo;
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_DEPOSITO_INVALIDO
         END
       END
     END;
@@ -118,7 +118,7 @@ OPERATIONS
           saldoDisponivelI(idxCliente) := novoSaldo;
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_SALDO_INSUFICIENTE
         END
       END
     END;
@@ -142,7 +142,7 @@ OPERATIONS
           custodiaDisponivelI(idxCustodia) := novaCustodia;
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_CUSTODIA_INVALIDA
         END
       END
     END;
@@ -180,7 +180,7 @@ OPERATIONS
           statusOrdemI(idxOrdem) := status_aberta;
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ABERTURA_COMPRA_INVALIDA
         END
       END
     END;
@@ -218,7 +218,7 @@ OPERATIONS
           statusOrdemI(idxOrdem) := status_aberta;
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ABERTURA_VENDA_INVALIDA
         END
       END
     END;
@@ -312,7 +312,7 @@ OPERATIONS
 
           resultado := OK
         ELSE
-          resultado := ERRO
+          resultado := ERRO_CASAMENTO_INVALIDO
         END
       END
     END;
@@ -353,7 +353,7 @@ OPERATIONS
               statusOrdemI(idxOrdem) := status_cancelada;
               resultado := OK
             ELSE
-              resultado := ERRO
+              resultado := ERRO_LIMITE_EXCEDIDO
             END
           ELSE
             IF custodiaBloqueadaAtual >= quantidadeAtual &
@@ -366,11 +366,11 @@ OPERATIONS
               statusOrdemI(idxOrdem) := status_cancelada;
               resultado := OK
             ELSE
-              resultado := ERRO
+              resultado := ERRO_LIMITE_EXCEDIDO
             END
           END
         ELSE
-          resultado := ERRO
+          resultado := ERRO_ORDEM_NAO_ABERTA
         END
       END
     END;
@@ -415,5 +415,4 @@ OPERATIONS
         END
       END
     END
-
 END

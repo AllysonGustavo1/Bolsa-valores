@@ -74,7 +74,7 @@ static inline const char *ui_cor_resultado(int32_t resultado) {
 }
 
 static inline const char *ui_texto_resultado(int32_t resultado) {
-    return resultado == 1 ? "OK" : "ERRO";
+    return resultado == 1 ? "OK" : "REJEITADO";
 }
 
 static inline const char *ui_texto_status(int32_t codigo) {

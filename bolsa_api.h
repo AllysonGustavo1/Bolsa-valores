@@ -9,12 +9,62 @@
 #define Bolsa_Contexto__OK 1
 #endif
 
+#ifndef Bolsa_Contexto__ERRO_CLIENTE_JA_CADASTRADO
+#define Bolsa_Contexto__ERRO_CLIENTE_JA_CADASTRADO 2
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_ATIVO_JA_CADASTRADO
+#define Bolsa_Contexto__ERRO_ATIVO_JA_CADASTRADO 3
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_DEPOSITO_INVALIDO
+#define Bolsa_Contexto__ERRO_DEPOSITO_INVALIDO 4
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_SALDO_INSUFICIENTE
+#define Bolsa_Contexto__ERRO_SALDO_INSUFICIENTE 5
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_CUSTODIA_INVALIDA
+#define Bolsa_Contexto__ERRO_CUSTODIA_INVALIDA 6
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_ABERTURA_COMPRA_INVALIDA
+#define Bolsa_Contexto__ERRO_ABERTURA_COMPRA_INVALIDA 7
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_ABERTURA_VENDA_INVALIDA
+#define Bolsa_Contexto__ERRO_ABERTURA_VENDA_INVALIDA 8
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_CASAMENTO_INVALIDO
+#define Bolsa_Contexto__ERRO_CASAMENTO_INVALIDO 9
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_LIMITE_EXCEDIDO
+#define Bolsa_Contexto__ERRO_LIMITE_EXCEDIDO 10
+#endif
+
+#ifndef Bolsa_Contexto__ERRO_ORDEM_NAO_ABERTA
+#define Bolsa_Contexto__ERRO_ORDEM_NAO_ABERTA 11
+#endif
+
 #include <stdint.h>
 #include "Bolsa_Valores_Abstract.h"
 
 enum {
     BOLSA_ERRO = 0,
     BOLSA_OK = 1,
+    BOLSA_ERRO_CLIENTE_JA_CADASTRADO = 2,
+    BOLSA_ERRO_ATIVO_JA_CADASTRADO = 3,
+    BOLSA_ERRO_DEPOSITO_INVALIDO = 4,
+    BOLSA_ERRO_SALDO_INSUFICIENTE = 5,
+    BOLSA_ERRO_CUSTODIA_INVALIDA = 6,
+    BOLSA_ERRO_ABERTURA_COMPRA_INVALIDA = 7,
+    BOLSA_ERRO_ABERTURA_VENDA_INVALIDA = 8,
+    BOLSA_ERRO_CASAMENTO_INVALIDO = 9,
+    BOLSA_ERRO_LIMITE_EXCEDIDO = 10,
+    BOLSA_ERRO_ORDEM_NAO_ABERTA = 11,
 
     BOLSA_MIN_CLIENTE = 1,
     BOLSA_MAX_CLIENTE = 20,
@@ -123,4 +173,35 @@ static inline void bolsa_consultar_status_ordem(int32_t ordem_id, int32_t *statu
     Bolsa_Valores_Abstract__consultarStatusOrdem(ordem_id, status_codigo);
 }
 
+
+static inline const char *bolsa_descricao_resultado(int32_t resultado) {
+    switch (resultado) {
+        case BOLSA_OK:
+            return "Operacao realizada com sucesso";
+        case BOLSA_ERRO:
+            return "Operacao rejeitada";
+        case BOLSA_ERRO_CLIENTE_JA_CADASTRADO:
+            return "Cliente ja cadastrado";
+        case BOLSA_ERRO_ATIVO_JA_CADASTRADO:
+            return "Ativo ja cadastrado";
+        case BOLSA_ERRO_DEPOSITO_INVALIDO:
+            return "Deposito rejeitado: cliente inexistente ou limite maximo excedido";
+        case BOLSA_ERRO_SALDO_INSUFICIENTE:
+            return "Saldo disponivel insuficiente ou cliente inexistente";
+        case BOLSA_ERRO_CUSTODIA_INVALIDA:
+            return "Custodia rejeitada: cliente/ativo inexistente ou limite excedido";
+        case BOLSA_ERRO_ABERTURA_COMPRA_INVALIDA:
+            return "Compra rejeitada: ordem indisponivel, cliente/ativo inexistente, saldo insuficiente ou limite excedido";
+        case BOLSA_ERRO_ABERTURA_VENDA_INVALIDA:
+            return "Venda rejeitada: ordem indisponivel, cliente/ativo inexistente, custodia insuficiente ou limite excedido";
+        case BOLSA_ERRO_CASAMENTO_INVALIDO:
+            return "Casamento rejeitado: ordens incompativeis ou recursos insuficientes";
+        case BOLSA_ERRO_LIMITE_EXCEDIDO:
+            return "Operacao rejeitada por limite interno ou recurso bloqueado insuficiente";
+        case BOLSA_ERRO_ORDEM_NAO_ABERTA:
+            return "Ordem nao esta aberta";
+        default:
+            return "Codigo de resultado desconhecido";
+    }
+}
 #endif

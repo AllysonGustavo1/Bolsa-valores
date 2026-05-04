@@ -97,7 +97,7 @@ void Bolsa_Valores_Abstract__cadastrarCliente(int32_t clienteId, int32_t *result
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_CLIENTE_JA_CADASTRADO;
         }
     }
 }
@@ -117,7 +117,7 @@ void Bolsa_Valores_Abstract__cadastrarAtivo(int32_t ativoId, int32_t *resultado)
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_ATIVO_JA_CADASTRADO;
         }
     }
 }
@@ -142,7 +142,7 @@ void Bolsa_Valores_Abstract__depositarSaldo(int32_t clienteId, int32_t valorDepo
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_DEPOSITO_INVALIDO;
         }
     }
 }
@@ -167,7 +167,7 @@ void Bolsa_Valores_Abstract__retirarSaldo(int32_t clienteId, int32_t valorRetira
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_SALDO_INSUFICIENTE;
         }
     }
 }
@@ -199,7 +199,7 @@ void Bolsa_Valores_Abstract__creditarCustodia(int32_t clienteId, int32_t ativoId
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_CUSTODIA_INVALIDA;
         }
     }
 }
@@ -248,7 +248,7 @@ void Bolsa_Valores_Abstract__abrirOrdemCompra(int32_t ordemId, int32_t clienteId
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_ABERTURA_COMPRA_INVALIDA;
         }
     }
 }
@@ -297,7 +297,7 @@ void Bolsa_Valores_Abstract__abrirOrdemVenda(int32_t ordemId, int32_t clienteId,
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_ABERTURA_VENDA_INVALIDA;
         }
     }
 }
@@ -417,7 +417,7 @@ void Bolsa_Valores_Abstract__executarCasamento(int32_t ordemCompra, int32_t orde
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_CASAMENTO_INVALIDO;
         }
     }
 }
@@ -476,7 +476,7 @@ void Bolsa_Valores_Abstract__cancelarOrdem(int32_t ordemId, int32_t *resultado)
                 }
                 else
                 {
-                    (*resultado) = Bolsa_Contexto__ERRO;
+                    (*resultado) = Bolsa_Contexto__ERRO_LIMITE_EXCEDIDO;
                 }
             }
             else
@@ -493,13 +493,13 @@ void Bolsa_Valores_Abstract__cancelarOrdem(int32_t ordemId, int32_t *resultado)
                 }
                 else
                 {
-                    (*resultado) = Bolsa_Contexto__ERRO;
+                    (*resultado) = Bolsa_Contexto__ERRO_LIMITE_EXCEDIDO;
                 }
             }
         }
         else
         {
-            (*resultado) = Bolsa_Contexto__ERRO;
+            (*resultado) = Bolsa_Contexto__ERRO_ORDEM_NAO_ABERTA;
         }
     }
 }

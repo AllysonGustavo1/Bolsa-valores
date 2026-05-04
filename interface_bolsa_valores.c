@@ -103,6 +103,7 @@ static int ler_inteiro(const char *rotulo, int32_t minimo, int32_t maximo, int32
 
 static void mostrar_resultado(int32_t resultado) {
     ui_resultado_operacao(resultado);
+    printf("%sMotivo:%s %s\n", ui_c(UI_BOLD), ui_c(UI_RESET), bolsa_descricao_resultado(resultado));
 }
 
 static void debug_saldo(int32_t cliente_id) {

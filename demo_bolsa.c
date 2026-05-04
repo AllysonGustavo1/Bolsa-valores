@@ -202,7 +202,7 @@ int demo_bolsa_popular(void) {
     r = bolsa_abrir_ordem_venda(7, 2, 1, 50, 1000); if (!passo("Ordem 7 VENDA: C2, A1, qtd 50, preco minimo 1000", r, BOLSA_OK)) return 0;
 
     r = bolsa_abrir_ordem_compra(8, 5, 1, 50, 50);
-    if (!passo("Rejeicao esperada da ordem 8: C5 nao tem saldo para 50 * 50", r, BOLSA_ERRO)) return 0;
+    if (!passo("Rejeicao esperada da ordem 8: C5 nao tem saldo para 50 * 50", r, BOLSA_ERRO_ABERTURA_COMPRA_INVALIDA)) return 0;
 
     r = bolsa_abrir_ordem_compra(9, 6, 2, 400, 1000); if (!passo("Ordem 9 COMPRA: C6, A2, qtd 400, preco limite 1000", r, BOLSA_OK)) return 0;
     r = bolsa_abrir_ordem_venda(10, 4, 2, 300, 900);  if (!passo("Ordem 10 VENDA: C4, A2, qtd 300, preco minimo 900", r, BOLSA_OK)) return 0;
@@ -267,6 +267,7 @@ int32_t demo_bolsa_executar_total(void) {
 
     ui_secao("Resultado");
     ui_resultado_operacao(resultado);
+    printf("%sMotivo:%s %s\n", ui_c(UI_BOLD), ui_c(UI_RESET), bolsa_descricao_resultado(resultado));
 
     ui_secao("Depois");
     estado_cenario_total();
@@ -287,6 +288,7 @@ int32_t demo_bolsa_executar_parcial(void) {
 
     ui_secao("Resultado");
     ui_resultado_operacao(resultado);
+    printf("%sMotivo:%s %s\n", ui_c(UI_BOLD), ui_c(UI_RESET), bolsa_descricao_resultado(resultado));
 
     ui_secao("Depois");
     estado_cenario_parcial();
@@ -310,6 +312,7 @@ int32_t demo_bolsa_tentar_casamento_invalido(void) {
 
     ui_secao("Resultado");
     ui_resultado_operacao(resultado);
+    printf("%sMotivo:%s %s\n", ui_c(UI_BOLD), ui_c(UI_RESET), bolsa_descricao_resultado(resultado));
 
     ui_secao("Depois");
     estado_cenario_parcial();
@@ -333,6 +336,7 @@ int32_t demo_bolsa_cancelar_ordem_padrao(void) {
 
     ui_secao("Resultado");
     ui_resultado_operacao(resultado);
+    printf("%sMotivo:%s %s\n", ui_c(UI_BOLD), ui_c(UI_RESET), bolsa_descricao_resultado(resultado));
 
     ui_secao("Depois");
     tabela_saldos(clientes, 1);
@@ -354,6 +358,7 @@ int32_t demo_bolsa_executar_ativo2(void) {
 
     ui_secao("Resultado");
     ui_resultado_operacao(resultado);
+    printf("%sMotivo:%s %s\n", ui_c(UI_BOLD), ui_c(UI_RESET), bolsa_descricao_resultado(resultado));
 
     ui_secao("Depois");
     estado_cenario_ativo2();
