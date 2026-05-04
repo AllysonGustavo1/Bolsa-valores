@@ -19,75 +19,80 @@ VARIABLES
   statusOrdemR
 
 INVARIANT
-  clienteAtivoR : (1..MAX_CLIENTES) --> BOOL &
-  ativoListadoR : (1..MAX_ATIVOS) --> BOOL &
-  saldoDisponivelR : (1..MAX_CLIENTES) --> (0..MAX_DINHEIRO) &
-  saldoBloqueadoR : (1..MAX_CLIENTES) --> (0..MAX_DINHEIRO) &
-  custodiaDisponivelR : (1..200) --> (0..MAX_DINHEIRO) &
-  custodiaBloqueadaR : (1..200) --> (0..MAX_DINHEIRO) &
-  donoOrdemR : (1..MAX_ORDENS) --> (1..MAX_CLIENTES) &
-  ativoOrdemR : (1..MAX_ORDENS) --> (1..MAX_ATIVOS) &
-  tipoLadoOrdemR : (1..MAX_ORDENS) --> TIPO_LADO &
-  quantidadeOrdemR : (1..MAX_ORDENS) --> (0..MAX_QUANTIDADE) &
-  precoLimiteOrdemR : (1..MAX_ORDENS) --> (0..MAX_PRECO) &
-  statusOrdemR : (1..MAX_ORDENS) --> STATUS_ORDEM &
+  clienteAtivoR : (0..19) --> BOOL &
+  ativoListadoR : (0..9) --> BOOL &
+  saldoDisponivelR : (0..19) --> (0..MAX_DINHEIRO) &
+  saldoBloqueadoR : (0..19) --> (0..MAX_DINHEIRO) &
+  custodiaDisponivelR : (0..199) --> (0..MAX_DINHEIRO) &
+  custodiaBloqueadaR : (0..199) --> (0..MAX_DINHEIRO) &
+  donoOrdemR : (0..49) --> (1..MAX_CLIENTES) &
+  ativoOrdemR : (0..49) --> (1..MAX_ATIVOS) &
+  tipoLadoOrdemR : (0..49) --> TIPO_LADO &
+  quantidadeOrdemR : (0..49) --> (0..MAX_QUANTIDADE) &
+  precoLimiteOrdemR : (0..49) --> (0..MAX_PRECO) &
+  statusOrdemR : (0..49) --> STATUS_ORDEM &
 
-  clientes = ((clienteAtivoR~)[{TRUE}]) &
-  ativos = ((ativoListadoR~)[{TRUE}]) &
-  saldoDisponivel = saldoDisponivelR &
-  saldoBloqueado = saldoBloqueadoR &
+  clientes = {clienteId | clienteId : 1..MAX_CLIENTES & clienteAtivoR(clienteId - 1) = TRUE} &
+  ativos = {ativoId | ativoId : 1..MAX_ATIVOS & ativoListadoR(ativoId - 1) = TRUE} &
+
+  !(clienteId).(
+    clienteId : 1..MAX_CLIENTES =>
+      saldoDisponivel(clienteId) = saldoDisponivelR(clienteId - 1) &
+      saldoBloqueado(clienteId) = saldoBloqueadoR(clienteId - 1)
+  ) &
 
   !(clienteId, ativoId).(
     clienteId : 1..MAX_CLIENTES &
     ativoId : 1..MAX_ATIVOS
   =>
     custodiaDisponivel(clienteId |-> ativoId) =
-      custodiaDisponivelR(((clienteId - 1) * MAX_ATIVOS) + ativoId)
-  ) &
-
-  !(clienteId, ativoId).(
-    clienteId : 1..MAX_CLIENTES &
-    ativoId : 1..MAX_ATIVOS
-  =>
+      custodiaDisponivelR(((clienteId - 1) * MAX_ATIVOS) + (ativoId - 1)) &
     custodiaBloqueada(clienteId |-> ativoId) =
-      custodiaBloqueadaR(((clienteId - 1) * MAX_ATIVOS) + ativoId)
+      custodiaBloqueadaR(((clienteId - 1) * MAX_ATIVOS) + (ativoId - 1))
   ) &
 
-  donoOrdem = donoOrdemR &
-  ativoOrdem = ativoOrdemR &
-  tipoLadoOrdem = tipoLadoOrdemR &
-  quantidadeOrdem = quantidadeOrdemR &
-  precoLimiteOrdem = precoLimiteOrdemR &
-  statusOrdem = statusOrdemR
+  !(ordemId).(
+    ordemId : 1..MAX_ORDENS =>
+      donoOrdem(ordemId) = donoOrdemR(ordemId - 1) &
+      ativoOrdem(ordemId) = ativoOrdemR(ordemId - 1) &
+      tipoLadoOrdem(ordemId) = tipoLadoOrdemR(ordemId - 1) &
+      quantidadeOrdem(ordemId) = quantidadeOrdemR(ordemId - 1) &
+      precoLimiteOrdem(ordemId) = precoLimiteOrdemR(ordemId - 1) &
+      statusOrdem(ordemId) = statusOrdemR(ordemId - 1)
+  )
 
 INITIALISATION
-  clienteAtivoR := (1..MAX_CLIENTES) * {FALSE} ||
-  ativoListadoR := (1..MAX_ATIVOS) * {FALSE} ||
-  saldoDisponivelR := (1..MAX_CLIENTES) * {0} ||
-  saldoBloqueadoR := (1..MAX_CLIENTES) * {0} ||
-  custodiaDisponivelR := (1..200) * {0} ||
-  custodiaBloqueadaR := (1..200) * {0} ||
-  donoOrdemR := (1..MAX_ORDENS) * {1} ||
-  ativoOrdemR := (1..MAX_ORDENS) * {1} ||
-  tipoLadoOrdemR := (1..MAX_ORDENS) * {lado_compra} ||
-  quantidadeOrdemR := (1..MAX_ORDENS) * {0} ||
-  precoLimiteOrdemR := (1..MAX_ORDENS) * {0} ||
-  statusOrdemR := (1..MAX_ORDENS) * {status_livre}
+  clienteAtivoR := (0..19) * {FALSE} ||
+  ativoListadoR := (0..9) * {FALSE} ||
+  saldoDisponivelR := (0..19) * {0} ||
+  saldoBloqueadoR := (0..19) * {0} ||
+  custodiaDisponivelR := (0..199) * {0} ||
+  custodiaBloqueadaR := (0..199) * {0} ||
+  donoOrdemR := (0..49) * {1} ||
+  ativoOrdemR := (0..49) * {1} ||
+  tipoLadoOrdemR := (0..49) * {lado_compra} ||
+  quantidadeOrdemR := (0..49) * {0} ||
+  precoLimiteOrdemR := (0..49) * {0} ||
+  statusOrdemR := (0..49) * {status_livre}
 
 OPERATIONS
-
 
   resultado <-- cadastrarCliente(clienteId) =
     PRE
       clienteId : 1..MAX_CLIENTES
     THEN
-      IF clienteAtivoR(clienteId) = FALSE THEN
-        clienteAtivoR := clienteAtivoR <+ {clienteId |-> TRUE} ||
-        saldoDisponivelR := saldoDisponivelR <+ {clienteId |-> 0} ||
-        saldoBloqueadoR := saldoBloqueadoR <+ {clienteId |-> 0} ||
-        resultado := OK
-      ELSE
-        resultado := ERRO
+      ANY idxCliente WHERE
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19
+      THEN
+        IF clienteAtivoR(idxCliente) = FALSE THEN
+          clienteAtivoR := clienteAtivoR <+ {idxCliente |-> TRUE} ||
+          saldoDisponivelR := saldoDisponivelR <+ {idxCliente |-> 0} ||
+          saldoBloqueadoR := saldoBloqueadoR <+ {idxCliente |-> 0} ||
+          resultado := OK
+        ELSE
+          resultado := ERRO
+        END
       END
     END;
 
@@ -95,11 +100,16 @@ OPERATIONS
     PRE
       ativoId : 1..MAX_ATIVOS
     THEN
-      IF ativoListadoR(ativoId) = FALSE THEN
-        ativoListadoR := ativoListadoR <+ {ativoId |-> TRUE} ||
-        resultado := OK
-      ELSE
-        resultado := ERRO
+      ANY idxAtivo WHERE
+        idxAtivo = ativoId - 1 &
+        idxAtivo : 0..9
+      THEN
+        IF ativoListadoR(idxAtivo) = FALSE THEN
+          ativoListadoR := ativoListadoR <+ {idxAtivo |-> TRUE} ||
+          resultado := OK
+        ELSE
+          resultado := ERRO
+        END
       END
     END;
 
@@ -108,14 +118,19 @@ OPERATIONS
       clienteId : 1..MAX_CLIENTES &
       valorDeposito : 1..MAX_DINHEIRO
     THEN
-      IF clienteAtivoR(clienteId) = TRUE &
-         saldoDisponivelR(clienteId) + valorDeposito <= MAX_DINHEIRO
+      ANY idxCliente WHERE
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19
       THEN
-        saldoDisponivelR := saldoDisponivelR <+
-          {clienteId |-> saldoDisponivelR(clienteId) + valorDeposito} ||
-        resultado := OK
-      ELSE
-        resultado := ERRO
+        IF clienteAtivoR(idxCliente) = TRUE &
+           saldoDisponivelR(idxCliente) + valorDeposito <= MAX_DINHEIRO
+        THEN
+          saldoDisponivelR := saldoDisponivelR <+
+            {idxCliente |-> saldoDisponivelR(idxCliente) + valorDeposito} ||
+          resultado := OK
+        ELSE
+          resultado := ERRO
+        END
       END
     END;
 
@@ -124,14 +139,19 @@ OPERATIONS
       clienteId : 1..MAX_CLIENTES &
       valorRetirada : 1..MAX_DINHEIRO
     THEN
-      IF clienteAtivoR(clienteId) = TRUE &
-         saldoDisponivelR(clienteId) >= valorRetirada
+      ANY idxCliente WHERE
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19
       THEN
-        saldoDisponivelR := saldoDisponivelR <+
-          {clienteId |-> saldoDisponivelR(clienteId) - valorRetirada} ||
-        resultado := OK
-      ELSE
-        resultado := ERRO
+        IF clienteAtivoR(idxCliente) = TRUE &
+           saldoDisponivelR(idxCliente) >= valorRetirada
+        THEN
+          saldoDisponivelR := saldoDisponivelR <+
+            {idxCliente |-> saldoDisponivelR(idxCliente) - valorRetirada} ||
+          resultado := OK
+        ELSE
+          resultado := ERRO
+        END
       END
     END;
 
@@ -141,15 +161,24 @@ OPERATIONS
       ativoId : 1..MAX_ATIVOS &
       quantidade : 1..MAX_QUANTIDADE
     THEN
-      IF clienteAtivoR(clienteId) = TRUE &
-         ativoListadoR(ativoId) = TRUE &
-         custodiaDisponivelR(((clienteId - 1) * MAX_ATIVOS) + ativoId) + quantidade <= MAX_DINHEIRO
+      ANY idxCliente, idxAtivo, idxCustodia WHERE
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19 &
+        idxAtivo = ativoId - 1 &
+        idxAtivo : 0..9 &
+        idxCustodia = (idxCliente * MAX_ATIVOS) + idxAtivo &
+        idxCustodia : 0..199
       THEN
-        custodiaDisponivelR := custodiaDisponivelR <+
-          {(((clienteId - 1) * MAX_ATIVOS) + ativoId) |-> custodiaDisponivelR(((clienteId - 1) * MAX_ATIVOS) + ativoId) + quantidade} ||
-        resultado := OK
-      ELSE
-        resultado := ERRO
+        IF clienteAtivoR(idxCliente) = TRUE &
+           ativoListadoR(idxAtivo) = TRUE &
+           custodiaDisponivelR(idxCustodia) + quantidade <= MAX_DINHEIRO
+        THEN
+          custodiaDisponivelR := custodiaDisponivelR <+
+            {idxCustodia |-> custodiaDisponivelR(idxCustodia) + quantidade} ||
+          resultado := OK
+        ELSE
+          resultado := ERRO
+        END
       END
     END;
 
@@ -161,25 +190,34 @@ OPERATIONS
       quantidade : 1..MAX_QUANTIDADE &
       precoLimite : 1..MAX_PRECO
     THEN
-      IF statusOrdemR(ordemId) = status_livre &
-         clienteAtivoR(clienteId) = TRUE &
-         ativoListadoR(ativoId) = TRUE &
-         saldoDisponivelR(clienteId) >= quantidade * precoLimite &
-         saldoBloqueadoR(clienteId) + quantidade * precoLimite <= MAX_DINHEIRO
+      ANY idxOrdem, idxCliente, idxAtivo WHERE
+        idxOrdem = ordemId - 1 &
+        idxOrdem : 0..49 &
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19 &
+        idxAtivo = ativoId - 1 &
+        idxAtivo : 0..9
       THEN
-        saldoDisponivelR := saldoDisponivelR <+
-          {clienteId |-> saldoDisponivelR(clienteId) - quantidade * precoLimite} ||
-        saldoBloqueadoR := saldoBloqueadoR <+
-          {clienteId |-> saldoBloqueadoR(clienteId) + quantidade * precoLimite} ||
-        donoOrdemR := donoOrdemR <+ {ordemId |-> clienteId} ||
-        ativoOrdemR := ativoOrdemR <+ {ordemId |-> ativoId} ||
-        tipoLadoOrdemR := tipoLadoOrdemR <+ {ordemId |-> lado_compra} ||
-        quantidadeOrdemR := quantidadeOrdemR <+ {ordemId |-> quantidade} ||
-        precoLimiteOrdemR := precoLimiteOrdemR <+ {ordemId |-> precoLimite} ||
-        statusOrdemR := statusOrdemR <+ {ordemId |-> status_aberta} ||
-        resultado := OK
-      ELSE
-        resultado := ERRO
+        IF statusOrdemR(idxOrdem) = status_livre &
+           clienteAtivoR(idxCliente) = TRUE &
+           ativoListadoR(idxAtivo) = TRUE &
+           saldoDisponivelR(idxCliente) >= quantidade * precoLimite &
+           saldoBloqueadoR(idxCliente) + quantidade * precoLimite <= MAX_DINHEIRO
+        THEN
+          saldoDisponivelR := saldoDisponivelR <+
+            {idxCliente |-> saldoDisponivelR(idxCliente) - quantidade * precoLimite} ||
+          saldoBloqueadoR := saldoBloqueadoR <+
+            {idxCliente |-> saldoBloqueadoR(idxCliente) + quantidade * precoLimite} ||
+          donoOrdemR := donoOrdemR <+ {idxOrdem |-> clienteId} ||
+          ativoOrdemR := ativoOrdemR <+ {idxOrdem |-> ativoId} ||
+          tipoLadoOrdemR := tipoLadoOrdemR <+ {idxOrdem |-> lado_compra} ||
+          quantidadeOrdemR := quantidadeOrdemR <+ {idxOrdem |-> quantidade} ||
+          precoLimiteOrdemR := precoLimiteOrdemR <+ {idxOrdem |-> precoLimite} ||
+          statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_aberta} ||
+          resultado := OK
+        ELSE
+          resultado := ERRO
+        END
       END
     END;
 
@@ -191,25 +229,36 @@ OPERATIONS
       quantidade : 1..MAX_QUANTIDADE &
       precoLimite : 1..MAX_PRECO
     THEN
-      IF statusOrdemR(ordemId) = status_livre &
-         clienteAtivoR(clienteId) = TRUE &
-         ativoListadoR(ativoId) = TRUE &
-         custodiaDisponivelR(((clienteId - 1) * MAX_ATIVOS) + ativoId) >= quantidade &
-         custodiaBloqueadaR(((clienteId - 1) * MAX_ATIVOS) + ativoId) + quantidade <= MAX_DINHEIRO
+      ANY idxOrdem, idxCliente, idxAtivo, idxCustodia WHERE
+        idxOrdem = ordemId - 1 &
+        idxOrdem : 0..49 &
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19 &
+        idxAtivo = ativoId - 1 &
+        idxAtivo : 0..9 &
+        idxCustodia = (idxCliente * MAX_ATIVOS) + idxAtivo &
+        idxCustodia : 0..199
       THEN
-        custodiaDisponivelR := custodiaDisponivelR <+
-          {(((clienteId - 1) * MAX_ATIVOS) + ativoId) |-> custodiaDisponivelR(((clienteId - 1) * MAX_ATIVOS) + ativoId) - quantidade} ||
-        custodiaBloqueadaR := custodiaBloqueadaR <+
-          {(((clienteId - 1) * MAX_ATIVOS) + ativoId) |-> custodiaBloqueadaR(((clienteId - 1) * MAX_ATIVOS) + ativoId) + quantidade} ||
-        donoOrdemR := donoOrdemR <+ {ordemId |-> clienteId} ||
-        ativoOrdemR := ativoOrdemR <+ {ordemId |-> ativoId} ||
-        tipoLadoOrdemR := tipoLadoOrdemR <+ {ordemId |-> lado_venda} ||
-        quantidadeOrdemR := quantidadeOrdemR <+ {ordemId |-> quantidade} ||
-        precoLimiteOrdemR := precoLimiteOrdemR <+ {ordemId |-> precoLimite} ||
-        statusOrdemR := statusOrdemR <+ {ordemId |-> status_aberta} ||
-        resultado := OK
-      ELSE
-        resultado := ERRO
+        IF statusOrdemR(idxOrdem) = status_livre &
+           clienteAtivoR(idxCliente) = TRUE &
+           ativoListadoR(idxAtivo) = TRUE &
+           custodiaDisponivelR(idxCustodia) >= quantidade &
+           custodiaBloqueadaR(idxCustodia) + quantidade <= MAX_DINHEIRO
+        THEN
+          custodiaDisponivelR := custodiaDisponivelR <+
+            {idxCustodia |-> custodiaDisponivelR(idxCustodia) - quantidade} ||
+          custodiaBloqueadaR := custodiaBloqueadaR <+
+            {idxCustodia |-> custodiaBloqueadaR(idxCustodia) + quantidade} ||
+          donoOrdemR := donoOrdemR <+ {idxOrdem |-> clienteId} ||
+          ativoOrdemR := ativoOrdemR <+ {idxOrdem |-> ativoId} ||
+          tipoLadoOrdemR := tipoLadoOrdemR <+ {idxOrdem |-> lado_venda} ||
+          quantidadeOrdemR := quantidadeOrdemR <+ {idxOrdem |-> quantidade} ||
+          precoLimiteOrdemR := precoLimiteOrdemR <+ {idxOrdem |-> precoLimite} ||
+          statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_aberta} ||
+          resultado := OK
+        ELSE
+          resultado := ERRO
+        END
       END
     END;
 
@@ -220,62 +269,123 @@ OPERATIONS
       quantidadeExecucao : 1..MAX_QUANTIDADE &
       precoExecucao : 1..MAX_PRECO
     THEN
-      IF ordemCompra /= ordemVenda &
-         statusOrdemR(ordemCompra) = status_aberta &
-         statusOrdemR(ordemVenda) = status_aberta &
-         tipoLadoOrdemR(ordemCompra) = lado_compra &
-         tipoLadoOrdemR(ordemVenda) = lado_venda &
-         donoOrdemR(ordemCompra) /= donoOrdemR(ordemVenda) &
-         ativoOrdemR(ordemCompra) = ativoOrdemR(ordemVenda) &
-         precoLimiteOrdemR(ordemCompra) >= precoLimiteOrdemR(ordemVenda) &
-         precoExecucao >= precoLimiteOrdemR(ordemVenda) &
-         precoExecucao <= precoLimiteOrdemR(ordemCompra) &
-         quantidadeExecucao <= quantidadeOrdemR(ordemCompra) &
-         quantidadeExecucao <= quantidadeOrdemR(ordemVenda) &
-         saldoBloqueadoR(donoOrdemR(ordemCompra)) >= quantidadeExecucao * precoLimiteOrdemR(ordemCompra) &
-         custodiaBloqueadaR(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) >= quantidadeExecucao &
-         saldoDisponivelR(donoOrdemR(ordemCompra)) + quantidadeExecucao * (precoLimiteOrdemR(ordemCompra) - precoExecucao) <= MAX_DINHEIRO &
-         saldoDisponivelR(donoOrdemR(ordemVenda)) + quantidadeExecucao * precoExecucao <= MAX_DINHEIRO &
-         custodiaDisponivelR(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) + quantidadeExecucao <= MAX_DINHEIRO
+      ANY
+        idxCompra,
+        idxVenda,
+        comprador,
+        vendedor,
+        idxComprador,
+        idxVendedor,
+        ativoNegociado,
+        idxCustodiaComprador,
+        idxCustodiaVendedor
+      WHERE
+        idxCompra = ordemCompra - 1 &
+        idxCompra : 0..49 &
+        idxVenda = ordemVenda - 1 &
+        idxVenda : 0..49 &
+        comprador = donoOrdemR(idxCompra) &
+        comprador : 1..MAX_CLIENTES &
+        vendedor = donoOrdemR(idxVenda) &
+        vendedor : 1..MAX_CLIENTES &
+        idxComprador = comprador - 1 &
+        idxComprador : 0..19 &
+        idxVendedor = vendedor - 1 &
+        idxVendedor : 0..19 &
+        ativoNegociado = ativoOrdemR(idxCompra) &
+        ativoNegociado : 1..MAX_ATIVOS &
+        idxCustodiaComprador = (idxComprador * MAX_ATIVOS) + (ativoNegociado - 1) &
+        idxCustodiaComprador : 0..199 &
+        idxCustodiaVendedor = (idxVendedor * MAX_ATIVOS) + (ativoNegociado - 1) &
+        idxCustodiaVendedor : 0..199
       THEN
-        IF quantidadeOrdemR(ordemCompra) > quantidadeExecucao THEN
-          IF quantidadeOrdemR(ordemVenda) > quantidadeExecucao THEN
-            saldoBloqueadoR := saldoBloqueadoR <+ {donoOrdemR(ordemCompra) |-> saldoBloqueadoR(donoOrdemR(ordemCompra)) - quantidadeExecucao * precoLimiteOrdemR(ordemCompra)} ||
-            saldoDisponivelR := saldoDisponivelR <+ {donoOrdemR(ordemCompra) |-> saldoDisponivelR(donoOrdemR(ordemCompra)) + quantidadeExecucao * (precoLimiteOrdemR(ordemCompra) - precoExecucao), donoOrdemR(ordemVenda) |-> saldoDisponivelR(donoOrdemR(ordemVenda)) + quantidadeExecucao * precoExecucao} ||
-            custodiaBloqueadaR := custodiaBloqueadaR <+ {(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) |-> custodiaBloqueadaR(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) - quantidadeExecucao} ||
-            custodiaDisponivelR := custodiaDisponivelR <+ {(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) |-> custodiaDisponivelR(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) + quantidadeExecucao} ||
-            quantidadeOrdemR := quantidadeOrdemR <+ {ordemCompra |-> quantidadeOrdemR(ordemCompra) - quantidadeExecucao, ordemVenda |-> quantidadeOrdemR(ordemVenda) - quantidadeExecucao} ||
-            resultado := OK
+        IF idxCompra /= idxVenda &
+           statusOrdemR(idxCompra) = status_aberta &
+           statusOrdemR(idxVenda) = status_aberta &
+           tipoLadoOrdemR(idxCompra) = lado_compra &
+           tipoLadoOrdemR(idxVenda) = lado_venda &
+           comprador /= vendedor &
+           ativoOrdemR(idxVenda) = ativoNegociado &
+           precoLimiteOrdemR(idxCompra) >= precoLimiteOrdemR(idxVenda) &
+           precoExecucao >= precoLimiteOrdemR(idxVenda) &
+           precoExecucao <= precoLimiteOrdemR(idxCompra) &
+           quantidadeExecucao <= quantidadeOrdemR(idxCompra) &
+           quantidadeExecucao <= quantidadeOrdemR(idxVenda) &
+           saldoBloqueadoR(idxComprador) >= quantidadeExecucao * precoLimiteOrdemR(idxCompra) &
+           custodiaBloqueadaR(idxCustodiaVendedor) >= quantidadeExecucao &
+           saldoDisponivelR(idxComprador) + quantidadeExecucao * (precoLimiteOrdemR(idxCompra) - precoExecucao) <= MAX_DINHEIRO &
+           saldoDisponivelR(idxVendedor) + quantidadeExecucao * precoExecucao <= MAX_DINHEIRO &
+           custodiaDisponivelR(idxCustodiaComprador) + quantidadeExecucao <= MAX_DINHEIRO
+        THEN
+          IF quantidadeOrdemR(idxCompra) > quantidadeExecucao THEN
+            IF quantidadeOrdemR(idxVenda) > quantidadeExecucao THEN
+              saldoBloqueadoR := saldoBloqueadoR <+
+                {idxComprador |-> saldoBloqueadoR(idxComprador) - quantidadeExecucao * precoLimiteOrdemR(idxCompra)} ||
+              saldoDisponivelR := saldoDisponivelR <+
+                {idxComprador |-> saldoDisponivelR(idxComprador) + quantidadeExecucao * (precoLimiteOrdemR(idxCompra) - precoExecucao),
+                 idxVendedor |-> saldoDisponivelR(idxVendedor) + quantidadeExecucao * precoExecucao} ||
+              custodiaBloqueadaR := custodiaBloqueadaR <+
+                {idxCustodiaVendedor |-> custodiaBloqueadaR(idxCustodiaVendedor) - quantidadeExecucao} ||
+              custodiaDisponivelR := custodiaDisponivelR <+
+                {idxCustodiaComprador |-> custodiaDisponivelR(idxCustodiaComprador) + quantidadeExecucao} ||
+              quantidadeOrdemR := quantidadeOrdemR <+
+                {idxCompra |-> quantidadeOrdemR(idxCompra) - quantidadeExecucao,
+                 idxVenda |-> quantidadeOrdemR(idxVenda) - quantidadeExecucao} ||
+              resultado := OK
+            ELSE
+              saldoBloqueadoR := saldoBloqueadoR <+
+                {idxComprador |-> saldoBloqueadoR(idxComprador) - quantidadeExecucao * precoLimiteOrdemR(idxCompra)} ||
+              saldoDisponivelR := saldoDisponivelR <+
+                {idxComprador |-> saldoDisponivelR(idxComprador) + quantidadeExecucao * (precoLimiteOrdemR(idxCompra) - precoExecucao),
+                 idxVendedor |-> saldoDisponivelR(idxVendedor) + quantidadeExecucao * precoExecucao} ||
+              custodiaBloqueadaR := custodiaBloqueadaR <+
+                {idxCustodiaVendedor |-> custodiaBloqueadaR(idxCustodiaVendedor) - quantidadeExecucao} ||
+              custodiaDisponivelR := custodiaDisponivelR <+
+                {idxCustodiaComprador |-> custodiaDisponivelR(idxCustodiaComprador) + quantidadeExecucao} ||
+              quantidadeOrdemR := quantidadeOrdemR <+
+                {idxCompra |-> quantidadeOrdemR(idxCompra) - quantidadeExecucao,
+                 idxVenda |-> 0} ||
+              statusOrdemR := statusOrdemR <+ {idxVenda |-> status_executada} ||
+              resultado := OK
+            END
           ELSE
-            saldoBloqueadoR := saldoBloqueadoR <+ {donoOrdemR(ordemCompra) |-> saldoBloqueadoR(donoOrdemR(ordemCompra)) - quantidadeExecucao * precoLimiteOrdemR(ordemCompra)} ||
-            saldoDisponivelR := saldoDisponivelR <+ {donoOrdemR(ordemCompra) |-> saldoDisponivelR(donoOrdemR(ordemCompra)) + quantidadeExecucao * (precoLimiteOrdemR(ordemCompra) - precoExecucao), donoOrdemR(ordemVenda) |-> saldoDisponivelR(donoOrdemR(ordemVenda)) + quantidadeExecucao * precoExecucao} ||
-            custodiaBloqueadaR := custodiaBloqueadaR <+ {(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) |-> custodiaBloqueadaR(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) - quantidadeExecucao} ||
-            custodiaDisponivelR := custodiaDisponivelR <+ {(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) |-> custodiaDisponivelR(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) + quantidadeExecucao} ||
-            quantidadeOrdemR := quantidadeOrdemR <+ {ordemCompra |-> quantidadeOrdemR(ordemCompra) - quantidadeExecucao, ordemVenda |-> 0} ||
-            statusOrdemR := statusOrdemR <+ {ordemVenda |-> status_executada} ||
-            resultado := OK
+            IF quantidadeOrdemR(idxVenda) > quantidadeExecucao THEN
+              saldoBloqueadoR := saldoBloqueadoR <+
+                {idxComprador |-> saldoBloqueadoR(idxComprador) - quantidadeExecucao * precoLimiteOrdemR(idxCompra)} ||
+              saldoDisponivelR := saldoDisponivelR <+
+                {idxComprador |-> saldoDisponivelR(idxComprador) + quantidadeExecucao * (precoLimiteOrdemR(idxCompra) - precoExecucao),
+                 idxVendedor |-> saldoDisponivelR(idxVendedor) + quantidadeExecucao * precoExecucao} ||
+              custodiaBloqueadaR := custodiaBloqueadaR <+
+                {idxCustodiaVendedor |-> custodiaBloqueadaR(idxCustodiaVendedor) - quantidadeExecucao} ||
+              custodiaDisponivelR := custodiaDisponivelR <+
+                {idxCustodiaComprador |-> custodiaDisponivelR(idxCustodiaComprador) + quantidadeExecucao} ||
+              quantidadeOrdemR := quantidadeOrdemR <+
+                {idxCompra |-> 0,
+                 idxVenda |-> quantidadeOrdemR(idxVenda) - quantidadeExecucao} ||
+              statusOrdemR := statusOrdemR <+ {idxCompra |-> status_executada} ||
+              resultado := OK
+            ELSE
+              saldoBloqueadoR := saldoBloqueadoR <+
+                {idxComprador |-> saldoBloqueadoR(idxComprador) - quantidadeExecucao * precoLimiteOrdemR(idxCompra)} ||
+              saldoDisponivelR := saldoDisponivelR <+
+                {idxComprador |-> saldoDisponivelR(idxComprador) + quantidadeExecucao * (precoLimiteOrdemR(idxCompra) - precoExecucao),
+                 idxVendedor |-> saldoDisponivelR(idxVendedor) + quantidadeExecucao * precoExecucao} ||
+              custodiaBloqueadaR := custodiaBloqueadaR <+
+                {idxCustodiaVendedor |-> custodiaBloqueadaR(idxCustodiaVendedor) - quantidadeExecucao} ||
+              custodiaDisponivelR := custodiaDisponivelR <+
+                {idxCustodiaComprador |-> custodiaDisponivelR(idxCustodiaComprador) + quantidadeExecucao} ||
+              quantidadeOrdemR := quantidadeOrdemR <+
+                {idxCompra |-> 0,
+                 idxVenda |-> 0} ||
+              statusOrdemR := statusOrdemR <+
+                {idxCompra |-> status_executada,
+                 idxVenda |-> status_executada} ||
+              resultado := OK
+            END
           END
         ELSE
-          IF quantidadeOrdemR(ordemVenda) > quantidadeExecucao THEN
-            saldoBloqueadoR := saldoBloqueadoR <+ {donoOrdemR(ordemCompra) |-> saldoBloqueadoR(donoOrdemR(ordemCompra)) - quantidadeExecucao * precoLimiteOrdemR(ordemCompra)} ||
-            saldoDisponivelR := saldoDisponivelR <+ {donoOrdemR(ordemCompra) |-> saldoDisponivelR(donoOrdemR(ordemCompra)) + quantidadeExecucao * (precoLimiteOrdemR(ordemCompra) - precoExecucao), donoOrdemR(ordemVenda) |-> saldoDisponivelR(donoOrdemR(ordemVenda)) + quantidadeExecucao * precoExecucao} ||
-            custodiaBloqueadaR := custodiaBloqueadaR <+ {(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) |-> custodiaBloqueadaR(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) - quantidadeExecucao} ||
-            custodiaDisponivelR := custodiaDisponivelR <+ {(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) |-> custodiaDisponivelR(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) + quantidadeExecucao} ||
-            quantidadeOrdemR := quantidadeOrdemR <+ {ordemCompra |-> 0, ordemVenda |-> quantidadeOrdemR(ordemVenda) - quantidadeExecucao} ||
-            statusOrdemR := statusOrdemR <+ {ordemCompra |-> status_executada} ||
-            resultado := OK
-          ELSE
-            saldoBloqueadoR := saldoBloqueadoR <+ {donoOrdemR(ordemCompra) |-> saldoBloqueadoR(donoOrdemR(ordemCompra)) - quantidadeExecucao * precoLimiteOrdemR(ordemCompra)} ||
-            saldoDisponivelR := saldoDisponivelR <+ {donoOrdemR(ordemCompra) |-> saldoDisponivelR(donoOrdemR(ordemCompra)) + quantidadeExecucao * (precoLimiteOrdemR(ordemCompra) - precoExecucao), donoOrdemR(ordemVenda) |-> saldoDisponivelR(donoOrdemR(ordemVenda)) + quantidadeExecucao * precoExecucao} ||
-            custodiaBloqueadaR := custodiaBloqueadaR <+ {(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) |-> custodiaBloqueadaR(((donoOrdemR(ordemVenda) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemVenda)) - quantidadeExecucao} ||
-            custodiaDisponivelR := custodiaDisponivelR <+ {(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) |-> custodiaDisponivelR(((donoOrdemR(ordemCompra) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemCompra)) + quantidadeExecucao} ||
-            quantidadeOrdemR := quantidadeOrdemR <+ {ordemCompra |-> 0, ordemVenda |-> 0} ||
-            statusOrdemR := statusOrdemR <+ {ordemCompra |-> status_executada, ordemVenda |-> status_executada} ||
-            resultado := OK
-          END
+          resultado := ERRO
         END
-      ELSE
-        resultado := ERRO
       END
     END;
 
@@ -283,34 +393,51 @@ OPERATIONS
     PRE
       ordemId : 1..MAX_ORDENS
     THEN
-      IF statusOrdemR(ordemId) = status_aberta THEN
-        IF tipoLadoOrdemR(ordemId) = lado_compra THEN
-          IF saldoBloqueadoR(donoOrdemR(ordemId)) >= quantidadeOrdemR(ordemId) * precoLimiteOrdemR(ordemId) &
-             saldoDisponivelR(donoOrdemR(ordemId)) + quantidadeOrdemR(ordemId) * precoLimiteOrdemR(ordemId) <= MAX_DINHEIRO
-          THEN
-            saldoDisponivelR := saldoDisponivelR <+ {donoOrdemR(ordemId) |-> saldoDisponivelR(donoOrdemR(ordemId)) + quantidadeOrdemR(ordemId) * precoLimiteOrdemR(ordemId)} ||
-            saldoBloqueadoR := saldoBloqueadoR <+ {donoOrdemR(ordemId) |-> saldoBloqueadoR(donoOrdemR(ordemId)) - quantidadeOrdemR(ordemId) * precoLimiteOrdemR(ordemId)} ||
-            quantidadeOrdemR := quantidadeOrdemR <+ {ordemId |-> 0} ||
-            statusOrdemR := statusOrdemR <+ {ordemId |-> status_cancelada} ||
-            resultado := OK
+      ANY idxOrdem, clienteOrdem, ativoAtual, idxCliente, idxCustodia WHERE
+        idxOrdem = ordemId - 1 &
+        idxOrdem : 0..49 &
+        clienteOrdem = donoOrdemR(idxOrdem) &
+        clienteOrdem : 1..MAX_CLIENTES &
+        idxCliente = clienteOrdem - 1 &
+        idxCliente : 0..19 &
+        ativoAtual = ativoOrdemR(idxOrdem) &
+        ativoAtual : 1..MAX_ATIVOS &
+        idxCustodia = (idxCliente * MAX_ATIVOS) + (ativoAtual - 1) &
+        idxCustodia : 0..199
+      THEN
+        IF statusOrdemR(idxOrdem) = status_aberta THEN
+          IF tipoLadoOrdemR(idxOrdem) = lado_compra THEN
+            IF saldoBloqueadoR(idxCliente) >= quantidadeOrdemR(idxOrdem) * precoLimiteOrdemR(idxOrdem) &
+               saldoDisponivelR(idxCliente) + quantidadeOrdemR(idxOrdem) * precoLimiteOrdemR(idxOrdem) <= MAX_DINHEIRO
+            THEN
+              saldoDisponivelR := saldoDisponivelR <+
+                {idxCliente |-> saldoDisponivelR(idxCliente) + quantidadeOrdemR(idxOrdem) * precoLimiteOrdemR(idxOrdem)} ||
+              saldoBloqueadoR := saldoBloqueadoR <+
+                {idxCliente |-> saldoBloqueadoR(idxCliente) - quantidadeOrdemR(idxOrdem) * precoLimiteOrdemR(idxOrdem)} ||
+              quantidadeOrdemR := quantidadeOrdemR <+ {idxOrdem |-> 0} ||
+              statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_cancelada} ||
+              resultado := OK
+            ELSE
+              resultado := ERRO
+            END
           ELSE
-            resultado := ERRO
+            IF custodiaBloqueadaR(idxCustodia) >= quantidadeOrdemR(idxOrdem) &
+               custodiaDisponivelR(idxCustodia) + quantidadeOrdemR(idxOrdem) <= MAX_DINHEIRO
+            THEN
+              custodiaDisponivelR := custodiaDisponivelR <+
+                {idxCustodia |-> custodiaDisponivelR(idxCustodia) + quantidadeOrdemR(idxOrdem)} ||
+              custodiaBloqueadaR := custodiaBloqueadaR <+
+                {idxCustodia |-> custodiaBloqueadaR(idxCustodia) - quantidadeOrdemR(idxOrdem)} ||
+              quantidadeOrdemR := quantidadeOrdemR <+ {idxOrdem |-> 0} ||
+              statusOrdemR := statusOrdemR <+ {idxOrdem |-> status_cancelada} ||
+              resultado := OK
+            ELSE
+              resultado := ERRO
+            END
           END
         ELSE
-          IF custodiaBloqueadaR(((donoOrdemR(ordemId) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemId)) >= quantidadeOrdemR(ordemId) &
-             custodiaDisponivelR(((donoOrdemR(ordemId) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemId)) + quantidadeOrdemR(ordemId) <= MAX_DINHEIRO
-          THEN
-            custodiaDisponivelR := custodiaDisponivelR <+ {(((donoOrdemR(ordemId) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemId)) |-> custodiaDisponivelR(((donoOrdemR(ordemId) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemId)) + quantidadeOrdemR(ordemId)} ||
-            custodiaBloqueadaR := custodiaBloqueadaR <+ {(((donoOrdemR(ordemId) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemId)) |-> custodiaBloqueadaR(((donoOrdemR(ordemId) - 1) * MAX_ATIVOS) + ativoOrdemR(ordemId)) - quantidadeOrdemR(ordemId)} ||
-            quantidadeOrdemR := quantidadeOrdemR <+ {ordemId |-> 0} ||
-            statusOrdemR := statusOrdemR <+ {ordemId |-> status_cancelada} ||
-            resultado := OK
-          ELSE
-            resultado := ERRO
-          END
+          resultado := ERRO
         END
-      ELSE
-        resultado := ERRO
       END
     END;
 
@@ -318,8 +445,13 @@ OPERATIONS
     PRE
       clienteId : 1..MAX_CLIENTES
     THEN
-      valorDisponivel := saldoDisponivelR(clienteId) ||
-      valorBloqueado := saldoBloqueadoR(clienteId)
+      ANY idxCliente WHERE
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19
+      THEN
+        valorDisponivel := saldoDisponivelR(idxCliente) ||
+        valorBloqueado := saldoBloqueadoR(idxCliente)
+      END
     END;
 
   quantidadeDisponivel, quantidadeBloqueada <-- consultarCustodia(clienteId, ativoId) =
@@ -327,28 +459,41 @@ OPERATIONS
       clienteId : 1..MAX_CLIENTES &
       ativoId : 1..MAX_ATIVOS
     THEN
-      quantidadeDisponivel := custodiaDisponivelR(((clienteId - 1) * MAX_ATIVOS) + ativoId) ||
-      quantidadeBloqueada := custodiaBloqueadaR(((clienteId - 1) * MAX_ATIVOS) + ativoId)
+      ANY idxCliente, idxAtivo, idxCustodia WHERE
+        idxCliente = clienteId - 1 &
+        idxCliente : 0..19 &
+        idxAtivo = ativoId - 1 &
+        idxAtivo : 0..9 &
+        idxCustodia = (idxCliente * MAX_ATIVOS) + idxAtivo &
+        idxCustodia : 0..199
+      THEN
+        quantidadeDisponivel := custodiaDisponivelR(idxCustodia) ||
+        quantidadeBloqueada := custodiaBloqueadaR(idxCustodia)
+      END
     END;
 
   statusCodigo <-- consultarStatusOrdem(ordemId) =
     PRE
       ordemId : 1..MAX_ORDENS
     THEN
-      IF statusOrdemR(ordemId) = status_livre THEN
-        statusCodigo := 0
-      ELSE
-        IF statusOrdemR(ordemId) = status_aberta THEN
-          statusCodigo := 1
+      ANY idxOrdem WHERE
+        idxOrdem = ordemId - 1 &
+        idxOrdem : 0..49
+      THEN
+        IF statusOrdemR(idxOrdem) = status_livre THEN
+          statusCodigo := 0
         ELSE
-          IF statusOrdemR(ordemId) = status_cancelada THEN
-            statusCodigo := 2
+          IF statusOrdemR(idxOrdem) = status_aberta THEN
+            statusCodigo := 1
           ELSE
-            statusCodigo := 3
+            IF statusOrdemR(idxOrdem) = status_cancelada THEN
+              statusCodigo := 2
+            ELSE
+              statusCodigo := 3
+            END
           END
         END
       END
     END
-
 
 END

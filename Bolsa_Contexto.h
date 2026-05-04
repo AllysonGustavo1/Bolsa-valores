@@ -13,7 +13,7 @@ typedef enum
 {
     Bolsa_Contexto__lado_compra,
     Bolsa_Contexto__lado_venda
-
+    
 } Bolsa_Contexto__TIPO_LADO;
 #define Bolsa_Contexto__TIPO_LADO__max 2
 typedef enum
@@ -22,7 +22,7 @@ typedef enum
     Bolsa_Contexto__status_aberta,
     Bolsa_Contexto__status_cancelada,
     Bolsa_Contexto__status_executada
-
+    
 } Bolsa_Contexto__STATUS_ORDEM;
 #define Bolsa_Contexto__STATUS_ORDEM__max 4
 
