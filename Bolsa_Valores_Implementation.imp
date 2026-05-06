@@ -142,7 +142,7 @@ OPERATIONS
         custodiaAtual := 0;
         novaCustodia := 0;
 
-        IF idxCustodia : 0..199 THEN
+        IF 0 <= idxCustodia & idxCustodia <= 199 THEN
           clienteCadastrado := clienteAtivoI(idxCliente);
           ativoCadastrado := ativoListadoI(idxAtivo);
           custodiaAtual := custodiaDisponivelI(idxCustodia);
@@ -224,7 +224,7 @@ OPERATIONS
         novaCustodiaDisponivel := 0;
         novaCustodiaBloqueada := 0;
 
-        IF idxCustodia : 0..199 THEN
+        IF 0 <= idxCustodia & idxCustodia <= 199 THEN
           clienteCadastrado := clienteAtivoI(idxCliente);
           ativoCadastrado := ativoListadoI(idxAtivo);
           statusAtual := statusOrdemI(idxOrdem);
@@ -314,8 +314,8 @@ OPERATIONS
         novaQuantidadeCompra := 0;
         novaQuantidadeVenda := 0;
 
-        IF idxCustodiaComprador : 0..199 &
-           idxCustodiaVendedor : 0..199
+        IF 0 <= idxCustodiaComprador & idxCustodiaComprador <= 199 &
+           0 <= idxCustodiaVendedor & idxCustodiaVendedor <= 199
         THEN
           saldoBloqueadoComprador := saldoBloqueadoI(idxComprador);
           saldoDispComprador := saldoDisponivelI(idxComprador);
@@ -421,7 +421,7 @@ OPERATIONS
         novaCustodiaDisponivel := 0;
         novaCustodiaBloqueada := 0;
 
-        IF idxCustodia : 0..199 THEN
+        IF 0 <= idxCustodia & idxCustodia <= 199 THEN
           custodiaAtual := custodiaDisponivelI(idxCustodia);
           custodiaBloqueadaAtual := custodiaBloqueadaI(idxCustodia);
           novaCustodiaDisponivel := custodiaAtual + quantidadeAtual;
@@ -482,7 +482,7 @@ OPERATIONS
         quantidadeDisponivel := 0;
         quantidadeBloqueada := 0;
 
-        IF idxCustodia : 0..199 THEN
+        IF 0 <= idxCustodia & idxCustodia <= 199 THEN
           quantidadeDisponivel := custodiaDisponivelI(idxCustodia);
           quantidadeBloqueada := custodiaBloqueadaI(idxCustodia)
         END
