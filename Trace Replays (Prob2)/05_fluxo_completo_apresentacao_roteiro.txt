@@ -1,0 +1,65 @@
+cadastrarCliente(clienteId=1) -> resultado=1
+cadastrarCliente(clienteId=2) -> resultado=1
+cadastrarCliente(clienteId=3) -> resultado=1
+cadastrarCliente(clienteId=4) -> resultado=1
+cadastrarCliente(clienteId=5) -> resultado=1
+cadastrarCliente(clienteId=6) -> resultado=1
+cadastrarCliente(clienteId=1) -> resultado=2
+cadastrarAtivo(ativoId=1) -> resultado=1
+cadastrarAtivo(ativoId=2) -> resultado=1
+cadastrarAtivo(ativoId=3) -> resultado=1
+cadastrarAtivo(ativoId=1) -> resultado=3
+depositarSaldo(clienteId=1, valorDeposito=1000000) -> resultado=1
+depositarSaldo(clienteId=2, valorDeposito=50000) -> resultado=1
+depositarSaldo(clienteId=3, valorDeposito=800000) -> resultado=1
+depositarSaldo(clienteId=4, valorDeposito=100000) -> resultado=1
+depositarSaldo(clienteId=5, valorDeposito=500) -> resultado=1
+depositarSaldo(clienteId=6, valorDeposito=600000) -> resultado=1
+depositarSaldo(clienteId=7, valorDeposito=1000) -> resultado=4
+retirarSaldo(clienteId=2, valorRetirada=10000) -> resultado=1
+retirarSaldo(clienteId=5, valorRetirada=1000) -> resultado=5
+creditarCustodia(clienteId=2, ativoId=1, quantidade=1000) -> resultado=1
+creditarCustodia(clienteId=2, ativoId=2, quantidade=400) -> resultado=1
+creditarCustodia(clienteId=4, ativoId=1, quantidade=600) -> resultado=1
+creditarCustodia(clienteId=4, ativoId=2, quantidade=1000) -> resultado=1
+creditarCustodia(clienteId=7, ativoId=1, quantidade=100) -> resultado=6
+consultarSaldo(clienteId=1) -> valorDisponivel=1000000, valorBloqueado=0
+consultarCustodia(clienteId=2, ativoId=1) -> quantidadeDisponivel=1000, quantidadeBloqueada=0
+abrirOrdemCompra(ordemId=1, clienteId=1, ativoId=1, quantidade=900, precoLimite=1000) -> resultado=1
+abrirOrdemVenda(ordemId=2, clienteId=2, ativoId=1, quantidade=900, precoLimite=920) -> resultado=1
+executarCasamento(ordemCompra=1, ordemVenda=2, quantidadeExecucao=900, precoExecucao=950) -> resultado=1
+consultarStatusOrdem(ordemId=1) -> statusCodigo=3
+consultarStatusOrdem(ordemId=2) -> statusCodigo=3
+consultarSaldo(clienteId=1) -> valorDisponivel=145000, valorBloqueado=0
+consultarSaldo(clienteId=2) -> valorDisponivel=895000, valorBloqueado=0
+consultarCustodia(clienteId=1, ativoId=1) -> quantidadeDisponivel=900, quantidadeBloqueada=0
+consultarCustodia(clienteId=2, ativoId=1) -> quantidadeDisponivel=100, quantidadeBloqueada=0
+abrirOrdemCompra(ordemId=3, clienteId=3, ativoId=1, quantidade=700, precoLimite=900) -> resultado=1
+abrirOrdemVenda(ordemId=4, clienteId=4, ativoId=1, quantidade=500, precoLimite=880) -> resultado=1
+executarCasamento(ordemCompra=3, ordemVenda=4, quantidadeExecucao=250, precoExecucao=890) -> resultado=1
+consultarStatusOrdem(ordemId=3) -> statusCodigo=1
+consultarStatusOrdem(ordemId=4) -> statusCodigo=1
+cancelarOrdem(ordemId=4) -> resultado=1
+consultarCustodia(clienteId=4, ativoId=1) -> quantidadeDisponivel=350, quantidadeBloqueada=0
+abrirOrdemCompra(ordemId=6, clienteId=1, ativoId=2, quantidade=200, precoLimite=500) -> resultado=1
+consultarSaldo(clienteId=1) -> valorDisponivel=45000, valorBloqueado=100000
+cancelarOrdem(ordemId=6) -> resultado=1
+consultarSaldo(clienteId=1) -> valorDisponivel=145000, valorBloqueado=0
+consultarStatusOrdem(ordemId=6) -> statusCodigo=2
+abrirOrdemCompra(ordemId=7, clienteId=3, ativoId=1, quantidade=100, precoLimite=800) -> resultado=1
+abrirOrdemVenda(ordemId=8, clienteId=4, ativoId=1, quantidade=100, precoLimite=950) -> resultado=1
+executarCasamento(ordemCompra=7, ordemVenda=8, quantidadeExecucao=100, precoExecucao=900) -> resultado=9
+cancelarOrdem(ordemId=7) -> resultado=1
+cancelarOrdem(ordemId=8) -> resultado=1
+abrirOrdemCompra(ordemId=9, clienteId=6, ativoId=2, quantidade=300, precoLimite=700) -> resultado=1
+abrirOrdemVenda(ordemId=10, clienteId=4, ativoId=2, quantidade=300, precoLimite=680) -> resultado=1
+executarCasamento(ordemCompra=9, ordemVenda=10, quantidadeExecucao=300, precoExecucao=690) -> resultado=1
+consultarStatusOrdem(ordemId=9) -> statusCodigo=3
+consultarStatusOrdem(ordemId=10) -> statusCodigo=3
+consultarCustodia(clienteId=6, ativoId=2) -> quantidadeDisponivel=300, quantidadeBloqueada=0
+consultarSaldo(clienteId=4) -> valorDisponivel=529500, valorBloqueado=0
+abrirOrdemCompra(ordemId=11, clienteId=5, ativoId=1, quantidade=50, precoLimite=50) -> resultado=7
+abrirOrdemVenda(ordemId=12, clienteId=5, ativoId=1, quantidade=1, precoLimite=10) -> resultado=8
+cancelarOrdem(ordemId=1) -> resultado=11
+consultarStatusOrdem(ordemId=1) -> statusCodigo=3
+consultarSaldo(clienteId=5) -> valorDisponivel=500, valorBloqueado=0

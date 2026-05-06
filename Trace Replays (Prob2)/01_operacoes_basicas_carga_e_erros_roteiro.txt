@@ -1,0 +1,27 @@
+cadastrarCliente(clienteId=1) -> resultado=1
+cadastrarCliente(clienteId=2) -> resultado=1
+cadastrarCliente(clienteId=3) -> resultado=1
+cadastrarCliente(clienteId=4) -> resultado=1
+cadastrarCliente(clienteId=5) -> resultado=1
+cadastrarCliente(clienteId=6) -> resultado=1
+cadastrarCliente(clienteId=1) -> resultado=2
+cadastrarAtivo(ativoId=1) -> resultado=1
+cadastrarAtivo(ativoId=2) -> resultado=1
+cadastrarAtivo(ativoId=3) -> resultado=1
+cadastrarAtivo(ativoId=1) -> resultado=3
+depositarSaldo(clienteId=1, valorDeposito=1000000) -> resultado=1
+depositarSaldo(clienteId=2, valorDeposito=50000) -> resultado=1
+depositarSaldo(clienteId=3, valorDeposito=800000) -> resultado=1
+depositarSaldo(clienteId=4, valorDeposito=100000) -> resultado=1
+depositarSaldo(clienteId=5, valorDeposito=500) -> resultado=1
+depositarSaldo(clienteId=6, valorDeposito=600000) -> resultado=1
+depositarSaldo(clienteId=7, valorDeposito=1000) -> resultado=4
+retirarSaldo(clienteId=2, valorRetirada=10000) -> resultado=1
+retirarSaldo(clienteId=5, valorRetirada=1000) -> resultado=5
+creditarCustodia(clienteId=2, ativoId=1, quantidade=1000) -> resultado=1
+creditarCustodia(clienteId=2, ativoId=2, quantidade=400) -> resultado=1
+creditarCustodia(clienteId=4, ativoId=1, quantidade=600) -> resultado=1
+creditarCustodia(clienteId=4, ativoId=2, quantidade=1000) -> resultado=1
+creditarCustodia(clienteId=7, ativoId=1, quantidade=100) -> resultado=6
+consultarSaldo(clienteId=1) -> valorDisponivel=1000000, valorBloqueado=0
+consultarCustodia(clienteId=2, ativoId=1) -> quantidadeDisponivel=1000, quantidadeBloqueada=0

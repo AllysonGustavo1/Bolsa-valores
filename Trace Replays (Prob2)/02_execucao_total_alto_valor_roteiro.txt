@@ -1,0 +1,15 @@
+cadastrarCliente(clienteId=1) -> resultado=1
+cadastrarCliente(clienteId=2) -> resultado=1
+cadastrarAtivo(ativoId=1) -> resultado=1
+depositarSaldo(clienteId=1, valorDeposito=1000000) -> resultado=1
+creditarCustodia(clienteId=2, ativoId=1, quantidade=1000) -> resultado=1
+abrirOrdemCompra(ordemId=1, clienteId=1, ativoId=1, quantidade=900, precoLimite=1000) -> resultado=1
+abrirOrdemVenda(ordemId=2, clienteId=2, ativoId=1, quantidade=900, precoLimite=920) -> resultado=1
+executarCasamento(ordemCompra=1, ordemVenda=2, quantidadeExecucao=900, precoExecucao=950) -> resultado=1
+consultarStatusOrdem(ordemId=1) -> statusCodigo=3
+consultarStatusOrdem(ordemId=2) -> statusCodigo=3
+consultarSaldo(clienteId=1) -> valorDisponivel=145000, valorBloqueado=0
+consultarSaldo(clienteId=2) -> valorDisponivel=855000, valorBloqueado=0
+consultarCustodia(clienteId=1, ativoId=1) -> quantidadeDisponivel=900, quantidadeBloqueada=0
+consultarCustodia(clienteId=2, ativoId=1) -> quantidadeDisponivel=100, quantidadeBloqueada=0
+cancelarOrdem(ordemId=1) -> resultado=11

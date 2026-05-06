@@ -1,0 +1,17 @@
+cadastrarCliente(clienteId=1) -> resultado=1
+cadastrarCliente(clienteId=2) -> resultado=1
+cadastrarCliente(clienteId=5) -> resultado=1
+cadastrarAtivo(ativoId=1) -> resultado=1
+depositarSaldo(clienteId=1, valorDeposito=100000) -> resultado=1
+depositarSaldo(clienteId=5, valorDeposito=500) -> resultado=1
+creditarCustodia(clienteId=2, ativoId=1, quantidade=100) -> resultado=1
+abrirOrdemCompra(ordemId=5, clienteId=1, ativoId=1, quantidade=5, precoLimite=80) -> resultado=1
+abrirOrdemVenda(ordemId=6, clienteId=2, ativoId=1, quantidade=5, precoLimite=100) -> resultado=1
+executarCasamento(ordemCompra=5, ordemVenda=6, quantidadeExecucao=5, precoExecucao=90) -> resultado=9
+abrirOrdemCompra(ordemId=7, clienteId=5, ativoId=1, quantidade=50, precoLimite=50) -> resultado=7
+abrirOrdemVenda(ordemId=8, clienteId=5, ativoId=1, quantidade=1, precoLimite=10) -> resultado=8
+creditarCustodia(clienteId=1, ativoId=9, quantidade=10) -> resultado=6
+depositarSaldo(clienteId=7, valorDeposito=100) -> resultado=4
+retirarSaldo(clienteId=5, valorRetirada=1000) -> resultado=5
+cancelarOrdem(ordemId=20) -> resultado=11
+consultarStatusOrdem(ordemId=20) -> statusCodigo=0
