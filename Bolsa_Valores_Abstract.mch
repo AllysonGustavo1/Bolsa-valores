@@ -34,11 +34,22 @@ INVARIANT
   precoLimiteOrdem : (1..MAX_ORDENS) --> (0..MAX_PRECO) &
   statusOrdem : (1..MAX_ORDENS) --> STATUS_ORDEM &
 
+  /*Toda ordem tem um cliente válido*/
   donoOrdem[statusOrdem~[{status_aberta}]] <: clientes &
+
+  /*Todo ordem tem um ativo válido*/
   ativoOrdem[statusOrdem~[{status_aberta}]] <: ativos &
+
+  /*Toda ordem tem quantidade válida*/
   quantidadeOrdem[statusOrdem~[{status_aberta}]] <: 1..MAX_QUANTIDADE &
+
+  /*Toda ordem não livre tem preço limite válido*/
   precoLimiteOrdem[statusOrdem~[{status_aberta}]] <: 1..MAX_PRECO &
+
+  /*Toda ordem tem quantidade válida*/
   quantidadeOrdem[(1..MAX_ORDENS) - statusOrdem~[{status_aberta}]] <: {0} &
+
+  /*Toda ordem livre tem preço limite 0*/
   precoLimiteOrdem[statusOrdem~[{status_livre}]] <: {0}
 
 INITIALISATION
