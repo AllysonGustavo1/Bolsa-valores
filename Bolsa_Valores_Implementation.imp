@@ -269,7 +269,8 @@ OPERATIONS
           valorBloqueadoCompra, valorExecutado, valorDevolvido,
           novoSaldoBloqueadoComprador, novoSaldoDisponivelComprador, novoSaldoDisponivelVendedor,
           novaCustodiaBloqueadaVendedor, novaCustodiaDisponivelComprador,
-          novaQuantidadeCompra, novaQuantidadeVenda
+          novaQuantidadeCompra, novaQuantidadeVenda,
+          novoStatusCompra, novoStatusVenda
       IN
         idxCompra := ordemCompra - 1;
         idxVenda := ordemVenda - 1;
@@ -313,9 +314,13 @@ OPERATIONS
         novaCustodiaDisponivelComprador := 0;
         novaQuantidadeCompra := 0;
         novaQuantidadeVenda := 0;
+        novoStatusCompra := status_aberta;
+        novoStatusVenda := status_aberta;
 
-        IF 0 <= idxCustodiaComprador & idxCustodiaComprador <= 199 &
-           0 <= idxCustodiaVendedor & idxCustodiaVendedor <= 199
+        IF 0 <= idxCustodiaComprador &
+           idxCustodiaComprador <= 199 &
+           0 <= idxCustodiaVendedor &
+           idxCustodiaVendedor <= 199
         THEN
           saldoBloqueadoComprador := saldoBloqueadoI(idxComprador);
           saldoDispComprador := saldoDisponivelI(idxComprador);
@@ -357,6 +362,18 @@ OPERATIONS
               novaQuantidadeCompra := qtdCompra - quantidadeExecucao;
               novaQuantidadeVenda := qtdVenda - quantidadeExecucao;
 
+              IF novaQuantidadeCompra = 0 THEN
+                novoStatusCompra := status_executada
+              ELSE
+                novoStatusCompra := status_aberta
+              END;
+
+              IF novaQuantidadeVenda = 0 THEN
+                novoStatusVenda := status_executada
+              ELSE
+                novoStatusVenda := status_aberta
+              END;
+
               saldoBloqueadoI(idxComprador) := novoSaldoBloqueadoComprador;
               saldoDisponivelI(idxComprador) := novoSaldoDisponivelComprador;
               saldoDisponivelI(idxVendedor) := novoSaldoDisponivelVendedor;
@@ -367,17 +384,8 @@ OPERATIONS
               quantidadeOrdemI(idxCompra) := novaQuantidadeCompra;
               quantidadeOrdemI(idxVenda) := novaQuantidadeVenda;
 
-              IF novaQuantidadeCompra = 0 THEN
-                statusOrdemI(idxCompra) := status_executada
-              ELSE
-                statusOrdemI(idxCompra) := status_aberta
-              END;
-
-              IF novaQuantidadeVenda = 0 THEN
-                statusOrdemI(idxVenda) := status_executada
-              ELSE
-                statusOrdemI(idxVenda) := status_aberta
-              END;
+              statusOrdemI(idxCompra) := novoStatusCompra;
+              statusOrdemI(idxVenda) := novoStatusVenda;
 
               resultado := OK
             ELSE
